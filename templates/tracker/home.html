@@ -145,13 +145,16 @@
             </div>
             <div class="xera-card-body">
                 {% for institute in primary_institutes %}
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div>
-                        <h6 class="mb-1">{{ institute.primary_institute|truncatechars:40 }}</h6>
-                        <small class="text-muted">{{ institute.count }} projects</small>
+                <a href="{% url 'tracker:project_list' %}?primary_institute={{ institute.primary_institute|urlencode }}" 
+                   class="text-decoration-none text-reset">
+                    <div class="d-flex justify-content-between align-items-center mb-3 p-2 rounded border-0 hover-bg-light">
+                        <div>
+                            <h6 class="mb-1 text-primary">{{ institute.primary_institute|truncatechars:40 }}</h6>
+                            <small class="text-muted">{{ institute.count }} projects</small>
+                        </div>
+                        <span class="badge bg-primary">{{ institute.count }}</span>
                     </div>
-                    <span class="badge bg-primary">{{ institute.count }}</span>
-                </div>
+                </a>
                 {% endfor %}
             </div>
         </div>
@@ -169,13 +172,16 @@
         <div class="row g-3">
             {% for area in therapeutic_areas %}
             <div class="col-md-6 col-lg-4">
-                <div class="d-flex justify-content-between align-items-center p-3 border rounded">
-                    <div>
-                        <h6 class="mb-1">{{ area.therapeutic_area|title|truncatechars:30 }}</h6>
-                        <small class="text-muted">{{ area.count }} projects</small>
+                <a href="{% url 'tracker:project_list' %}?therapeutic_area={{ area.therapeutic_area|urlencode }}" 
+                   class="text-decoration-none text-reset">
+                    <div class="d-flex justify-content-between align-items-center p-3 border rounded hover-bg-light">
+                        <div>
+                            <h6 class="mb-1 text-primary">{{ area.therapeutic_area|title|truncatechars:30 }}</h6>
+                            <small class="text-muted">{{ area.count }} projects</small>
+                        </div>
+                        <span class="badge bg-secondary">{{ area.count }}</span>
                     </div>
-                    <span class="badge bg-secondary">{{ area.count }}</span>
-                </div>
+                </a>
             </div>
             {% endfor %}
         </div>
@@ -196,6 +202,29 @@
         </a>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.hover-bg-light:hover {
+    background-color: #f8f9fa !important;
+    transition: background-color 0.2s ease;
+}
+
+.hover-bg-light:hover .text-primary {
+    color: var(--xera-primary) !important;
+}
+
+.hover-bg-light {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.hover-bg-light:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+</style>
 {% endblock %}
 
 {% block extra_js %}
