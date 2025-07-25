@@ -14,12 +14,26 @@ from .serializers import CIHRProjectSerializer, CIHRProjectListSerializer
 
 def home(request):
     """Home page with overview statistics"""
+    
+    # Calculate total funding
+    total_funding = 0
+    funding_projects = 0
+    for project in CIHRProject.objects.exclude(cihr_amounts__isnull=True).exclude(cihr_amounts=''):
+        try:
+            amount = float(project.cihr_amounts.replace('$', '').replace(',', ''))
+            if amount > 0:
+                total_funding += amount
+                funding_projects += 1
+        except (ValueError, AttributeError):
+            pass
+    
     context = {
         'page_title': 'CIHR Projects Tracker',
         'page_description': 'Comprehensive database of Canadian Institutes of Health Research funded projects',
         'page_icon': 'fas fa-flag',
         'total_projects': CIHRProject.objects.count(),
-        'broad_study_types': CIHRProject.objects.values('broad_study_type').annotate(count=Count('broad_study_type')).order_by('-count'),
+        'total_funding': total_funding,
+        'funding_projects': funding_projects,
         'therapeutic_areas': CIHRProject.objects.exclude(therapeutic_area__isnull=True).exclude(therapeutic_area='').exclude(therapeutic_area__iexact='N/A').values('therapeutic_area').annotate(count=Count('therapeutic_area')).order_by('-count')[:10],
         'primary_institutes': CIHRProject.objects.exclude(primary_institute__isnull=True).exclude(primary_institute='').exclude(primary_institute__iexact='N/A').values('primary_institute').annotate(count=Count('primary_institute')).order_by('-count')[:5],
     }
