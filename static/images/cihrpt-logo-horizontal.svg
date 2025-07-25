@@ -1,1 +1,60 @@
- 
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 100" width="400" height="100">
+  <defs>
+    <linearGradient id="leafGradientH" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ef4444;stop-opacity:1" />
+      <stop offset="30%" style="stop-color:#dc2626;stop-opacity:1" />
+      <stop offset="70%" style="stop-color:#b91c1c;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#991b1b;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="stemGradientH" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#a16207;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#713f12;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#dc2626;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#991b1b;stop-opacity:1" />
+    </linearGradient>
+    <filter id="dropShadowH">
+      <feDropShadow dx="1" dy="2" stdDeviation="2" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  
+  <g transform="translate(10, 10) scale(0.8)">
+    <path d="M50 10 L54 22.5 L62.5 17.5 L70 25 L77.5 20 L72.5 32.5 L85 37.5 L77.5 42.5 L87.5 47.5 L75 52.5 L82.5 65 L70 62.5 L72.5 75 L62.5 70 L65 82.5 L50 77.5 L35 82.5 L37.5 70 L27.5 75 L30 62.5 L17.5 65 L25 52.5 L12.5 47.5 L22.5 42.5 L15 37.5 L27.5 32.5 L22.5 20 L30 25 L37.5 17.5 L46 22.5 Z" 
+          fill="url(#leafGradientH)" 
+          stroke="#7f1d1d" 
+          stroke-width="1"
+          filter="url(#dropShadowH)"/>
+    
+    <line x1="50" y1="22.5" x2="50" y2="77.5" stroke="#7f1d1d" stroke-width="1.5" opacity="0.6"/>
+    
+    <path d="M50 40 Q37.5 42.5 32.5 50" stroke="#7f1d1d" stroke-width="1" opacity="0.4" fill="none"/>
+    <path d="M50 50 Q40 55 35 62.5" stroke="#7f1d1d" stroke-width="1" opacity="0.4" fill="none"/>
+    <path d="M50 60 Q42.5 65 37.5 70" stroke="#7f1d1d" stroke-width="1" opacity="0.4" fill="none"/>
+    
+    <path d="M50 40 Q62.5 42.5 67.5 50" stroke="#7f1d1d" stroke-width="1" opacity="0.4" fill="none"/>
+    <path d="M50 50 Q60 55 65 62.5" stroke="#7f1d1d" stroke-width="1" opacity="0.4" fill="none"/>
+    <path d="M50 60 Q57.5 65 62.5 70" stroke="#7f1d1d" stroke-width="1" opacity="0.4" fill="none"/>
+    
+    <ellipse cx="50" cy="85" rx="2" ry="7.5" fill="url(#stemGradientH)" stroke="#713f12" stroke-width="0.5"/>
+    
+    <ellipse cx="42.5" cy="37.5" rx="4" ry="6" fill="#fca5a5" opacity="0.4" transform="rotate(-15 42.5 37.5)"/>
+  </g>
+  
+  <text x="120" y="45" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" 
+        font-size="32" font-weight="700" fill="url(#textGradient)" filter="url(#dropShadowH)">
+    CIHRPT
+  </text>
+  
+  <text x="120" y="65" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" 
+        font-size="14" font-weight="400" fill="#6b7280" opacity="0.8">
+    CIHR Projects Tracker
+  </text>
+  
+  <g transform="translate(350, 25)">
+    <rect x="0" y="0" width="30" height="20" fill="#ff0000" rx="2"/>
+    <rect x="10" y="0" width="10" height="20" fill="#ffffff"/>
+    <path d="M15 5 L16 8 L19 7 L17 10 L20 11 L17 12 L19 15 L16 14 L15 17 L14 14 L11 15 L13 12 L10 11 L13 10 L11 7 L14 8 Z" 
+          fill="#ff0000"/>
+  </g>
+</svg>
