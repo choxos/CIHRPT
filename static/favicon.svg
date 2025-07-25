@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="redGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#dc2626;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#991b1b;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Maple Leaf Shape -->
+  <path d="M16 2 L18 8 L24 6 L20 12 L26 14 L20 16 L24 22 L18 20 L16 26 L14 20 L8 22 L12 16 L6 14 L12 12 L8 6 L14 8 Z" 
+        fill="url(#redGradient)" 
+        stroke="#7f1d1d" 
+        stroke-width="0.5"/>
+  
+  <!-- Stem -->
+  <rect x="15" y="26" width="2" height="4" fill="url(#redGradient)"/>
+</svg>
