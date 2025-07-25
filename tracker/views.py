@@ -119,6 +119,17 @@ def project_detail(request, project_id):
 
 def statistics(request):
     """Statistics and analytics page"""
+    
+    def parse_funding_amount(amount_str):
+        """Parse funding amount string to float"""
+        if not amount_str:
+            return 0
+        # Remove $, commas, and convert to float
+        try:
+            return float(amount_str.replace('$', '').replace(',', ''))
+        except (ValueError, AttributeError):
+            return 0
+    
     # Basic statistics
     total_projects = CIHRProject.objects.count()
     
@@ -159,6 +170,76 @@ def statistics(request):
         'Knowledge Translation': CIHRProject.objects.filter(knowledge_translation_focus='yes').count(),
     }
     
+    # FUNDING ANALYSIS
+    
+    # Calculate total funding
+    total_funding = 0
+    funding_projects = 0
+    for project in CIHRProject.objects.exclude(cihr_amounts__isnull=True).exclude(cihr_amounts=''):
+        amount = parse_funding_amount(project.cihr_amounts)
+        if amount > 0:
+            total_funding += amount
+            funding_projects += 1
+    
+    # Funding by therapeutic area
+    funding_by_therapeutic_area = {}
+    for project in CIHRProject.objects.exclude(therapeutic_area__isnull=True).exclude(therapeutic_area='').exclude(therapeutic_area__iexact='N/A').exclude(cihr_amounts__isnull=True).exclude(cihr_amounts=''):
+        area = project.therapeutic_area
+        amount = parse_funding_amount(project.cihr_amounts)
+        if amount > 0:
+            funding_by_therapeutic_area[area] = funding_by_therapeutic_area.get(area, 0) + amount
+    
+    # Top 10 funded therapeutic areas
+    top_funded_areas = sorted(funding_by_therapeutic_area.items(), key=lambda x: x[1], reverse=True)[:10]
+    
+    # Funding by CIHR institute
+    funding_by_institute = {}
+    for project in CIHRProject.objects.exclude(primary_institute__isnull=True).exclude(primary_institute='').exclude(primary_institute__iexact='N/A').exclude(cihr_amounts__isnull=True).exclude(cihr_amounts=''):
+        institute = project.primary_institute
+        amount = parse_funding_amount(project.cihr_amounts)
+        if amount > 0:
+            funding_by_institute[institute] = funding_by_institute.get(institute, 0) + amount
+    
+    # Top 10 funded institutes
+    top_funded_institutes = sorted(funding_by_institute.items(), key=lambda x: x[1], reverse=True)[:10]
+    
+    # Funding by study type
+    funding_by_study_type = {}
+    for project in CIHRProject.objects.exclude(cihr_amounts__isnull=True).exclude(cihr_amounts=''):
+        study_type = project.broad_study_type
+        amount = parse_funding_amount(project.cihr_amounts)
+        if amount > 0:
+            funding_by_study_type[study_type] = funding_by_study_type.get(study_type, 0) + amount
+    
+    # Funding by research theme
+    funding_by_theme = {}
+    for project in CIHRProject.objects.exclude(primary_theme__isnull=True).exclude(primary_theme='').exclude(primary_theme__iexact='N/A').exclude(cihr_amounts__isnull=True).exclude(cihr_amounts=''):
+        theme = project.primary_theme
+        amount = parse_funding_amount(project.cihr_amounts)
+        if amount > 0:
+            funding_by_theme[theme] = funding_by_theme.get(theme, 0) + amount
+    
+    # Top 10 funded themes
+    top_funded_themes = sorted(funding_by_theme.items(), key=lambda x: x[1], reverse=True)[:10]
+    
+    # Funding by special focus areas
+    funding_by_focus = {}
+    focus_area_fields = {
+        'Patient Engagement': 'patient_engagement',
+        'Indigenous Collaboration': 'indigenous_collaboration', 
+        'International Collaboration': 'international_collaboration',
+        'Health Equity': 'health_equity',
+        'Implementation Science': 'implementation_science',
+        'Knowledge Translation': 'knowledge_translation_focus',
+    }
+    
+    for area_name, field_name in focus_area_fields.items():
+        total_funding_area = 0
+        for project in CIHRProject.objects.filter(**{field_name: 'yes'}).exclude(cihr_amounts__isnull=True).exclude(cihr_amounts=''):
+            amount = parse_funding_amount(project.cihr_amounts)
+            total_funding_area += amount
+        funding_by_focus[area_name] = total_funding_area
+    
     context = {
         'page_title': 'Statistics & Analytics',
         'page_description': 'Comprehensive statistics and visualizations of CIHR projects',
@@ -172,6 +253,14 @@ def statistics(request):
         'year_distribution': dict(sorted(year_distribution.items())),
         'tech_stats': tech_stats,
         'focus_areas': focus_areas,
+        # Funding data
+        'total_funding': total_funding,
+        'funding_projects': funding_projects,
+        'top_funded_areas': top_funded_areas,
+        'top_funded_institutes': top_funded_institutes,
+        'funding_by_study_type': funding_by_study_type,
+        'top_funded_themes': top_funded_themes,
+        'funding_by_focus': funding_by_focus,
     }
     return render(request, 'tracker/statistics.html', context)
 

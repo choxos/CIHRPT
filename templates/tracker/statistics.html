@@ -20,9 +20,9 @@
     <div class="col-md-2">
         <div class="xera-card text-center">
             <div class="xera-card-body">
-                <i class="fas fa-microscope text-success mb-2" style="font-size: 2rem;"></i>
-                <h4 class="fw-bold text-success">{{ study_types|length }}</h4>
-                <p class="text-muted mb-0">Study Types</p>
+                <i class="fas fa-dollar-sign text-success mb-2" style="font-size: 2rem;"></i>
+                <h4 class="fw-bold text-success">${{ total_funding|floatformat:0|slice:":2" }}.{{ total_funding|floatformat:0|slice:"2:3" }}B</h4>
+                <p class="text-muted mb-0">Total Funding</p>
             </div>
         </div>
     </div>
@@ -167,6 +167,72 @@
         <canvas id="themesChart" height="200"></canvas>
     </div>
 </div>
+
+<!-- Funding Analysis Section -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="xera-card h-100">
+            <div class="xera-card-header">
+                <h5 class="xera-card-title">
+                    <i class="fas fa-dollar-sign me-2"></i>Funding by Study Type
+                </h5>
+            </div>
+            <div class="xera-card-body">
+                <canvas id="fundingStudyTypeChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="xera-card h-100">
+            <div class="xera-card-header">
+                <h5 class="xera-card-title">
+                    <i class="fas fa-chart-bar me-2"></i>Top Funded Therapeutic Areas
+                </h5>
+            </div>
+            <div class="xera-card-body">
+                <canvas id="fundingTherapeuticChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="xera-card h-100">
+            <div class="xera-card-header">
+                <h5 class="xera-card-title">
+                    <i class="fas fa-university me-2"></i>Top Funded CIHR Institutes
+                </h5>
+            </div>
+            <div class="xera-card-body">
+                <canvas id="fundingInstituteChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="xera-card h-100">
+            <div class="xera-card-header">
+                <h5 class="xera-card-title">
+                    <i class="fas fa-heart me-2"></i>Funding by Special Focus
+                </h5>
+            </div>
+            <div class="xera-card-body">
+                <canvas id="fundingFocusChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="xera-card mb-4">
+    <div class="xera-card-header">
+        <h5 class="xera-card-title">
+            <i class="fas fa-lightbulb me-2"></i>Top Funded Research Themes
+        </h5>
+    </div>
+    <div class="xera-card-body">
+        <canvas id="fundingThemesChart" height="200"></canvas>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -276,7 +342,7 @@ const therapeuticData = {
 };
 
 new Chart(therapeuticCtx, {
-    type: 'horizontalBar',
+    type: 'bar',
     data: therapeuticData,
     options: {
         responsive: true,
@@ -399,6 +465,217 @@ new Chart(themesCtx, {
             x: { 
                 ticks: { maxRotation: 45, minRotation: 45 }
             },
+            y: { beginAtZero: true }
+        }
+    }
+});
+
+// FUNDING CHARTS
+
+// Funding by Study Type Chart
+const fundingStudyTypeCtx = document.getElementById('fundingStudyTypeChart').getContext('2d');
+const fundingStudyTypeData = {
+    labels: [
+        {% for study_type, amount in funding_by_study_type.items %}
+        '{{ study_type|title }}'{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ],
+    datasets: [{
+        label: 'Funding (CAD)',
+        data: [
+            {% for study_type, amount in funding_by_study_type.items %}
+            {{ amount|floatformat:0 }}{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        backgroundColor: [colors.primary, colors.secondary, colors.success, colors.info, colors.warning],
+        borderWidth: 2,
+        borderColor: '#ffffff'
+    }]
+};
+
+new Chart(fundingStudyTypeCtx, {
+    type: 'doughnut',
+    data: fundingStudyTypeData,
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'bottom', labels: { padding: 15, usePointStyle: true } },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return context.label + ': $' + context.parsed.toLocaleString();
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Top Funded Therapeutic Areas Chart
+const fundingTherapeuticCtx = document.getElementById('fundingTherapeuticChart').getContext('2d');
+const fundingTherapeuticData = {
+    labels: [
+        {% for area, amount in top_funded_areas %}
+        '{{ area|title|truncatechars:20 }}'{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ],
+    datasets: [{
+        label: 'Funding (CAD)',
+        data: [
+            {% for area, amount in top_funded_areas %}
+            {{ amount|floatformat:0 }}{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        backgroundColor: colors.info,
+        borderColor: colors.primary,
+        borderWidth: 1
+    }]
+};
+
+new Chart(fundingTherapeuticCtx, {
+    type: 'bar',
+    data: fundingTherapeuticData,
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: 'y',
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return '$' + context.parsed.x.toLocaleString();
+                    }
+                }
+            }
+        },
+        scales: { x: { beginAtZero: true } }
+    }
+});
+
+// Top Funded CIHR Institutes Chart
+const fundingInstituteCtx = document.getElementById('fundingInstituteChart').getContext('2d');
+const fundingInstituteData = {
+    labels: [
+        {% for institute, amount in top_funded_institutes %}
+        '{{ institute|truncatechars:25 }}'{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ],
+    datasets: [{
+        label: 'Funding (CAD)',
+        data: [
+            {% for institute, amount in top_funded_institutes %}
+            {{ amount|floatformat:0 }}{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        backgroundColor: colors.warning,
+        borderColor: colors.primary,
+        borderWidth: 1
+    }]
+};
+
+new Chart(fundingInstituteCtx, {
+    type: 'bar',
+    data: fundingInstituteData,
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return '$' + context.parsed.y.toLocaleString();
+                    }
+                }
+            }
+        },
+        scales: {
+            x: { ticks: { maxRotation: 45, minRotation: 45 } },
+            y: { beginAtZero: true }
+        }
+    }
+});
+
+// Funding by Special Focus Chart
+const fundingFocusCtx = document.getElementById('fundingFocusChart').getContext('2d');
+const fundingFocusData = {
+    labels: [
+        {% for area, amount in funding_by_focus.items %}
+        '{{ area }}'{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ],
+    datasets: [{
+        data: [
+            {% for area, amount in funding_by_focus.items %}
+            {{ amount|floatformat:0 }}{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        backgroundColor: [colors.danger, colors.success, colors.info, colors.warning, colors.secondary, colors.primary],
+        borderWidth: 2,
+        borderColor: '#ffffff'
+    }]
+};
+
+new Chart(fundingFocusCtx, {
+    type: 'polarArea',
+    data: fundingFocusData,
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'bottom', labels: { padding: 10, usePointStyle: true, fontSize: 10 } },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return context.label + ': $' + context.parsed.toLocaleString();
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Top Funded Research Themes Chart
+const fundingThemesCtx = document.getElementById('fundingThemesChart').getContext('2d');
+const fundingThemesData = {
+    labels: [
+        {% for theme, amount in top_funded_themes %}
+        '{{ theme|truncatechars:30 }}'{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ],
+    datasets: [{
+        label: 'Funding (CAD)',
+        data: [
+            {% for theme, amount in top_funded_themes %}
+            {{ amount|floatformat:0 }}{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        backgroundColor: colors.secondary,
+        borderColor: colors.primary,
+        borderWidth: 1
+    }]
+};
+
+new Chart(fundingThemesCtx, {
+    type: 'bar',
+    data: fundingThemesData,
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return '$' + context.parsed.y.toLocaleString();
+                    }
+                }
+            }
+        },
+        scales: {
+            x: { ticks: { maxRotation: 45, minRotation: 45 } },
             y: { beginAtZero: true }
         }
     }
