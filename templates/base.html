@@ -1,0 +1,20 @@
+{% extends "xera_base.html" %}
+{% load static %}
+
+{% block title %}CIHRPT - CIHR Projects Tracker{% endblock %}
+
+{% block meta_description %}CIHR Projects Tracker - Comprehensive database of Canadian Institutes of Health Research funded projects{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/themes/cihrpt-theme.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+    <!-- CIHRPT specific JavaScript -->
+    <script>
+        // Initialize CIHRPT specific functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('CIHRPT loaded successfully');
+        });
+    </script>
+{% endblock %} 

@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+{% load static %}
+{% load tracker_filters %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item">
+    <a href="{% url 'tracker:project_list' %}">Projects</a>
+</li>
+<li class="breadcrumb-item active" aria-current="page">{{ project.project_id }}</li>
+{% endblock %}
+
+{% block content %}
+<!-- Project Header -->
+<div class="xera-card mb-4">
+    <div class="xera-card-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <div class="d-flex align-items-center mb-2">
+                    <span class="badge bg-primary me-3 fs-6">{{ project.project_id }}</span>
+                    <h4 class="mb-0">{{ project.project_title }}</h4>
+                </div>
+            </div>
+            <div class="col-md-4 text-end">
+                {% if project.cihr_amounts %}
+                <div class="text-success fw-bold fs-5">
+                    <i class="fas fa-dollar-sign me-1"></i>{{ project.cihr_amounts }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Key Information -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="xera-card h-100">
+            <div class="xera-card-header">
+                <h6 class="xera-card-title">
+                    <i class="fas fa-info-circle me-2"></i>Project Information
+                </h6>
+            </div>
+            <div class="xera-card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <td class="text-muted"><strong>Study Type:</strong></td>
+                        <td>
+                            <span class="badge bg-secondary">{{ project.broad_study_type|title }}</span>
+                            {% if project.narrow_study_type %}
+                            <span class="badge bg-outline-secondary ms-1">{{ project.narrow_study_type|title }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% if project.therapeutic_area %}
+                    <tr>
+                        <td class="text-muted"><strong>Therapeutic Area:</strong></td>
+                        <td><span class="badge bg-info">{{ project.therapeutic_area|title }}</span></td>
+                    </tr>
+                    {% endif %}
+                    {% if project.primary_theme %}
+                    <tr>
+                        <td class="text-muted"><strong>Research Theme:</strong></td>
+                        <td><span class="badge bg-success">{{ project.primary_theme }}</span></td>
+                    </tr>
+                    {% endif %}
+                    {% if project.disease_area %}
+                    <tr>
+                        <td class="text-muted"><strong>Disease Area:</strong></td>
+                        <td>{{ project.disease_area }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if project.data_type != 'unclear' %}
+                    <tr>
+                        <td class="text-muted"><strong>Data Type:</strong></td>
+                        <td><span class="badge bg-warning">{{ project.data_type|title }}</span></td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="xera-card h-100">
+            <div class="xera-card-header">
+                <h6 class="xera-card-title">
+                    <i class="fas fa-building me-2"></i>Institution & Funding
+                </h6>
+            </div>
+            <div class="xera-card-body">
+                <table class="table table-borderless">
+                    {% if project.principal_investigators %}
+                    <tr>
+                        <td class="text-muted"><strong>Principal Investigator:</strong></td>
+                        <td>{{ project.principal_investigators }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if project.research_institution %}
+                    <tr>
+                        <td class="text-muted"><strong>Institution:</strong></td>
+                        <td>{{ project.research_institution }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if project.primary_institute %}
+                    <tr>
+                        <td class="text-muted"><strong>CIHR Institute:</strong></td>
+                        <td>{{ project.primary_institute }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if project.competition_year %}
+                    <tr>
+                        <td class="text-muted"><strong>Competition Year:</strong></td>
+                        <td><span class="badge bg-dark">{{ project.competition_year }}</span></td>
+                    </tr>
+                    {% endif %}
+                    {% if project.term_years_months %}
+                    <tr>
+                        <td class="text-muted"><strong>Term:</strong></td>
+                        <td>{{ project.term_years_months }}</td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Abstract -->
+{% if project.abstract_summary %}
+<div class="xera-card mb-4">
+    <div class="xera-card-header">
+        <h6 class="xera-card-title">
+            <i class="fas fa-file-text me-2"></i>Abstract Summary
+        </h6>
+    </div>
+    <div class="xera-card-body">
+        <p class="mb-0">{{ project.abstract_summary }}</p>
+    </div>
+</div>
+{% endif %}
+
+<!-- Research Characteristics (Only "Yes" Fields) -->
+{% if yes_fields %}
+<div class="xera-card mb-4">
+    <div class="xera-card-header">
+        <h6 class="xera-card-title">
+            <i class="fas fa-check-circle me-2"></i>Research Characteristics
+        </h6>
+        <p class="text-muted mb-0 small">This project includes the following research characteristics:</p>
+    </div>
+    <div class="xera-card-body">
+        <div class="row g-3">
+            {% for field_name, field_value in yes_fields.items %}
+            <div class="col-md-6 col-lg-4">
+                <div class="d-flex align-items-center p-3 bg-light rounded">
+                    <i class="fas fa-check-circle text-success me-2"></i>
+                    <span class="fw-medium">{{ field_name }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="xera-card mb-4">
+    <div class="xera-card-body text-center py-4">
+        <i class="fas fa-info-circle text-muted mb-2" style="font-size: 2rem;"></i>
+        <h6 class="text-muted">No special research characteristics identified</h6>
+        <p class="text-muted mb-0 small">This project does not include any of the advanced research characteristics tracked in our database.</p>
+    </div>
+</div>
+{% endif %}
+
+<!-- Additional Details -->
+<div class="row g-4 mb-4">
+    {% if project.justification %}
+    <div class="col-md-6">
+        <div class="xera-card h-100">
+            <div class="xera-card-header">
+                <h6 class="xera-card-title">
+                    <i class="fas fa-quote-left me-2"></i>Study Justification
+                </h6>
+            </div>
+            <div class="xera-card-body">
+                <p class="mb-0 fst-italic">"{{ project.justification }}"</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if project.novelty_statement %}
+    <div class="col-md-6">
+        <div class="xera-card h-100">
+            <div class="xera-card-header">
+                <h6 class="xera-card-title">
+                    <i class="fas fa-lightbulb me-2"></i>Novelty Statement
+                </h6>
+            </div>
+            <div class="xera-card-body">
+                <p class="mb-0 fst-italic">"{{ project.novelty_statement }}"</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% if project.methodology_innovation %}
+<div class="xera-card mb-4">
+    <div class="xera-card-header">
+        <h6 class="xera-card-title">
+            <i class="fas fa-cogs me-2"></i>Methodology Innovation
+        </h6>
+    </div>
+    <div class="xera-card-body">
+        <p class="mb-0">{{ project.methodology_innovation }}</p>
+    </div>
+</div>
+{% endif %}
+
+<!-- Keywords -->
+{% if project.keywords %}
+<div class="xera-card mb-4">
+    <div class="xera-card-header">
+        <h6 class="xera-card-title">
+            <i class="fas fa-tags me-2"></i>Keywords
+        </h6>
+    </div>
+    <div class="xera-card-body">
+        {% for keyword in project.keywords|split:';' %}
+        <span class="badge bg-outline-primary me-2 mb-2">{{ keyword|title }}</span>
+        {% empty %}
+        <span class="badge bg-outline-primary me-2 mb-2">{{ project.keywords|title }}</span>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Navigation -->
+<div class="d-flex justify-content-between">
+    <a href="{% url 'tracker:project_list' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i>Back to Projects
+    </a>
+    
+    <div class="btn-group">
+        <a href="/api/projects/{{ project.project_id }}/" class="btn btn-outline-primary" target="_blank">
+            <i class="fas fa-code me-1"></i>View API
+        </a>
+        <button class="btn btn-primary" onclick="window.print()">
+            <i class="fas fa-print me-1"></i>Print
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Add any project-specific JavaScript here
+document.addEventListener('DOMContentLoaded', function() {
+    // Add copy to clipboard functionality for project ID
+    const projectId = '{{ project.project_id }}';
+    
+    // You can add more interactive features here
+});
+</script>
+{% endblock %} 

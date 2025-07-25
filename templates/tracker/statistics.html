@@ -1,0 +1,407 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active" aria-current="page">Statistics</li>
+{% endblock %}
+
+{% block content %}
+<!-- Overview Stats -->
+<div class="row g-4 mb-5">
+    <div class="col-md-2">
+        <div class="xera-card text-center">
+            <div class="xera-card-body">
+                <i class="fas fa-flask text-primary mb-2" style="font-size: 2rem;"></i>
+                <h4 class="fw-bold text-primary">{{ total_projects|floatformat:0 }}</h4>
+                <p class="text-muted mb-0">Total Projects</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="xera-card text-center">
+            <div class="xera-card-body">
+                <i class="fas fa-microscope text-success mb-2" style="font-size: 2rem;"></i>
+                <h4 class="fw-bold text-success">{{ study_types|length }}</h4>
+                <p class="text-muted mb-0">Study Types</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="xera-card text-center">
+            <div class="xera-card-body">
+                <i class="fas fa-dna text-info mb-2" style="font-size: 2rem;"></i>
+                <h4 class="fw-bold text-info">{{ therapeutic_areas|length }}</h4>
+                <p class="text-muted mb-0">Therapeutic Areas</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="xera-card text-center">
+            <div class="xera-card-body">
+                <i class="fas fa-university text-warning mb-2" style="font-size: 2rem;"></i>
+                <h4 class="fw-bold text-warning">{{ institutes|length }}</h4>
+                <p class="text-muted mb-0">CIHR Institutes</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="xera-card text-center">
+            <div class="xera-card-body">
+                <i class="fas fa-tags text-secondary mb-2" style="font-size: 2rem;"></i>
+                <h4 class="fw-bold text-secondary">{{ themes|length }}</h4>
+                <p class="text-muted mb-0">Research Themes</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="xera-card text-center">
+            <div class="xera-card-body">
+                <i class="fas fa-calendar text-danger mb-2" style="font-size: 2rem;"></i>
+                <h4 class="fw-bold text-danger">{{ year_distribution|length }}</h4>
+                <p class="text-muted mb-0">Competition Years</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row 1 -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="xera-card h-100">
+            <div class="xera-card-header">
+                <h5 class="xera-card-title">
+                    <i class="fas fa-chart-pie me-2"></i>Study Types Distribution
+                </h5>
+            </div>
+            <div class="xera-card-body">
+                <canvas id="studyTypesChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="xera-card h-100">
+            <div class="xera-card-header">
+                <h5 class="xera-card-title">
+                    <i class="fas fa-chart-bar me-2"></i>Projects by Year
+                </h5>
+            </div>
+            <div class="xera-card-body">
+                <canvas id="yearChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row 2 -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="xera-card h-100">
+            <div class="xera-card-header">
+                <h5 class="xera-card-title">
+                    <i class="fas fa-dna me-2"></i>Top Therapeutic Areas
+                </h5>
+            </div>
+            <div class="xera-card-body">
+                <canvas id="therapeuticAreasChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="xera-card h-100">
+            <div class="xera-card-header">
+                <h5 class="xera-card-title">
+                    <i class="fas fa-microchip me-2"></i>Technology Adoption
+                </h5>
+            </div>
+            <div class="xera-card-body">
+                <canvas id="technologyChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CIHR Institutes -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="xera-card h-100">
+            <div class="xera-card-header">
+                <h5 class="xera-card-title">
+                    <i class="fas fa-building me-2"></i>CIHR Institutes
+                </h5>
+            </div>
+            <div class="xera-card-body">
+                <canvas id="institutesChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="xera-card h-100">
+            <div class="xera-card-header">
+                <h5 class="xera-card-title">
+                    <i class="fas fa-users me-2"></i>Special Focus Areas
+                </h5>
+            </div>
+            <div class="xera-card-body">
+                {% for area, count in focus_areas.items %}
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h6 class="mb-0">{{ area }}</h6>
+                        <small class="text-muted">{{ count }} projects</small>
+                    </div>
+                    <span class="badge bg-primary">{{ count }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Research Themes -->
+<div class="xera-card mb-4">
+    <div class="xera-card-header">
+        <h5 class="xera-card-title">
+            <i class="fas fa-lightbulb me-2"></i>Research Themes Distribution
+        </h5>
+    </div>
+    <div class="xera-card-body">
+        <canvas id="themesChart" height="200"></canvas>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Color palette for charts
+const colors = {
+    primary: '#dc2626',
+    secondary: '#991b1b', 
+    success: '#059669',
+    info: '#0891b2',
+    warning: '#d97706',
+    danger: '#dc2626',
+    light: '#f3f4f6',
+    dark: '#374151'
+};
+
+// Study Types Pie Chart
+const studyTypesCtx = document.getElementById('studyTypesChart').getContext('2d');
+const studyTypesData = {
+    labels: [
+        {% for type in study_types %}
+        '{{ type.broad_study_type|title }}'{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ],
+    datasets: [{
+        data: [
+            {% for type in study_types %}
+            {{ type.count }}{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        backgroundColor: [colors.primary, colors.secondary, colors.success, colors.info, colors.warning],
+        borderWidth: 2,
+        borderColor: '#ffffff'
+    }]
+};
+
+new Chart(studyTypesCtx, {
+    type: 'doughnut',
+    data: studyTypesData,
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: { padding: 15, usePointStyle: true }
+            }
+        }
+    }
+});
+
+// Year Distribution Chart
+const yearCtx = document.getElementById('yearChart').getContext('2d');
+const yearData = {
+    labels: [
+        {% for year, count in year_distribution.items %}
+        '{{ year }}'{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ],
+    datasets: [{
+        label: 'Projects',
+        data: [
+            {% for year, count in year_distribution.items %}
+            {{ count }}{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        backgroundColor: colors.primary,
+        borderColor: colors.secondary,
+        borderWidth: 1
+    }]
+};
+
+new Chart(yearCtx, {
+    type: 'bar',
+    data: yearData,
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+});
+
+// Therapeutic Areas Chart
+const therapeuticCtx = document.getElementById('therapeuticAreasChart').getContext('2d');
+const therapeuticData = {
+    labels: [
+        {% for area in therapeutic_areas %}
+        '{{ area.therapeutic_area|title|truncatechars:20 }}'{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ],
+    datasets: [{
+        label: 'Projects',
+        data: [
+            {% for area in therapeutic_areas %}
+            {{ area.count }}{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        backgroundColor: colors.info,
+        borderColor: colors.primary,
+        borderWidth: 1
+    }]
+};
+
+new Chart(therapeuticCtx, {
+    type: 'horizontalBar',
+    data: therapeuticData,
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: 'y',
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            x: { beginAtZero: true }
+        }
+    }
+});
+
+// Technology Adoption Chart
+const techCtx = document.getElementById('technologyChart').getContext('2d');
+const techData = {
+    labels: [
+        {% for field, count in tech_stats.items %}
+        '{{ field|title|slice:"3:"|capfirst }}'{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ],
+    datasets: [{
+        data: [
+            {% for field, count in tech_stats.items %}
+            {{ count }}{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        backgroundColor: [colors.warning, colors.success, colors.info, colors.danger, colors.secondary, colors.primary],
+        borderWidth: 2,
+        borderColor: '#ffffff'
+    }]
+};
+
+new Chart(techCtx, {
+    type: 'polarArea',
+    data: techData,
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: { padding: 10, usePointStyle: true, fontSize: 10 }
+            }
+        }
+    }
+});
+
+// Institutes Chart
+const institutesCtx = document.getElementById('institutesChart').getContext('2d');
+const institutesData = {
+    labels: [
+        {% for institute in institutes %}
+        '{{ institute.primary_institute|truncatechars:25 }}'{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ],
+    datasets: [{
+        label: 'Projects',
+        data: [
+            {% for institute in institutes %}
+            {{ institute.count }}{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        backgroundColor: colors.success,
+        borderColor: colors.primary,
+        borderWidth: 1
+    }]
+};
+
+new Chart(institutesCtx, {
+    type: 'bar',
+    data: institutesData,
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            x: { 
+                ticks: { maxRotation: 45, minRotation: 45 }
+            },
+            y: { beginAtZero: true }
+        }
+    }
+});
+
+// Themes Chart
+const themesCtx = document.getElementById('themesChart').getContext('2d');
+const themesData = {
+    labels: [
+        {% for theme in themes %}
+        '{{ theme.primary_theme|truncatechars:30 }}'{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ],
+    datasets: [{
+        label: 'Projects',
+        data: [
+            {% for theme in themes %}
+            {{ theme.count }}{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        backgroundColor: colors.secondary,
+        borderColor: colors.primary,
+        borderWidth: 1
+    }]
+};
+
+new Chart(themesCtx, {
+    type: 'bar',
+    data: themesData,
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            x: { 
+                ticks: { maxRotation: 45, minRotation: 45 }
+            },
+            y: { beginAtZero: true }
+        }
+    }
+});
+</script>
+{% endblock %} 
