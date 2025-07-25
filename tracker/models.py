@@ -168,12 +168,28 @@ class CIHRProject(models.Model):
         db_table = 'cihr_projects'
         ordering = ['-project_id']
         indexes = [
+            # Primary indexes for frequent queries
             models.Index(fields=['project_id']),
             models.Index(fields=['broad_study_type']),
             models.Index(fields=['therapeutic_area']),
             models.Index(fields=['primary_institute']),
             models.Index(fields=['primary_theme']),
             models.Index(fields=['competition_year_month']),
+            models.Index(fields=['research_institution']),
+            
+            # Composite indexes for common filter combinations
+            models.Index(fields=['broad_study_type', 'therapeutic_area']),
+            models.Index(fields=['primary_institute', 'competition_year_month']),
+            
+            # Indexes for funding analysis
+            models.Index(fields=['cihr_amounts']),
+            
+            # Search optimization indexes
+            models.Index(fields=['project_title']),
+            models.Index(fields=['principal_investigators']),
+            
+            # Date/year based queries
+            models.Index(fields=['competition_year_month', 'broad_study_type']),
         ]
     
     def __str__(self):

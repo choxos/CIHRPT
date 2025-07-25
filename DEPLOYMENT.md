@@ -66,12 +66,12 @@ sudo systemctl enable postgresql
 sudo -u postgres psql
 
 # In PostgreSQL shell:
-CREATE DATABASE cihrpt_db;
+CREATE DATABASE cihrpt_production;
 CREATE USER cihrpt_user WITH PASSWORD 'your_secure_password_here';
 ALTER ROLE cihrpt_user SET client_encoding TO 'utf8';
 ALTER ROLE cihrpt_user SET default_transaction_isolation TO 'read committed';
 ALTER ROLE cihrpt_user SET timezone TO 'UTC';
-GRANT ALL PRIVILEGES ON DATABASE cihrpt_db TO cihrpt_user;
+GRANT ALL PRIVILEGES ON DATABASE cihrpt_production TO cihrpt_user;
 \q
 ```
 
@@ -84,7 +84,7 @@ sudo nano /etc/postgresql/14/main/postgresql.conf
 
 sudo nano /etc/postgresql/14/main/pg_hba.conf
 # Add at the end:
-# local   cihrpt_db    cihrpt_user                     md5
+# local   cihrpt_production    cihrpt_user                     md5
 
 sudo systemctl restart postgresql
 ```
@@ -133,12 +133,12 @@ nano /home/cihrpt/CIHRPT/.env
 
 ```env
 # Database Configuration
-DATABASE_URL=postgresql://cihrpt_user:your_secure_password_here@localhost:5432/cihrpt_db
+DATABASE_URL=postgresql://cihrpt_user:Choxos10203040@localhost:5432/cihrpt_production
 
 # Django Settings
-SECRET_KEY=your_very_long_and_secure_secret_key_here
+SECRET_KEY='mf)d6dx=6)efzl_3vplj0@@0ml8=!h3wh*0^)7wk5j1%yr7s1q'
 DEBUG=False
-ALLOWED_HOSTS=cihrpt.xeradb.com,www.cihrpt.xeradb.com,localhost,127.0.0.1
+ALLOWED_HOSTS=cihrpt.xeradb.com,www.cihrpt.xeradb.com,91.99.161.136,localhost,127.0.0.1
 
 # Security Settings
 SECURE_SSL_REDIRECT=True
@@ -464,12 +464,12 @@ DATE=$(date +%Y%m%d_%H%M%S)
 mkdir -p $BACKUP_DIR
 
 # Database backup
-pg_dump -h localhost -U cihrpt_user cihrpt_db > $BACKUP_DIR/cihrpt_db_$DATE.sql
+pg_dump -h localhost -U cihrpt_user cihrpt_production > $BACKUP_DIR/cihrpt_production_$DATE.sql
 
 # Keep only last 7 days of backups
 find $BACKUP_DIR -name "*.sql" -mtime +7 -delete
 
-echo "Backup completed: cihrpt_db_$DATE.sql"
+echo "Backup completed: cihrpt_production_$DATE.sql"
 ```
 
 ```bash
@@ -514,7 +514,7 @@ crontab -e
    ```sql
    -- Connect to PostgreSQL and run:
    ANALYZE;
-   REINDEX DATABASE cihrpt_db;
+   REINDEX DATABASE cihrpt_production;
    ```
 
 2. **Nginx Caching**

@@ -39,6 +39,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'django.middleware.cache.UpdateCacheMiddleware',  # Must be first
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -46,7 +47,13 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.cache.FetchFromCacheMiddleware',  # Must be last
 ]
+
+# Cache middleware settings
+CACHE_MIDDLEWARE_ALIAS = 'default'
+CACHE_MIDDLEWARE_SECONDS = config('CACHE_MIDDLEWARE_SECONDS', default=600, cast=int) if HAS_DECOUPLE else 300
+CACHE_MIDDLEWARE_KEY_PREFIX = 'cihrpt'
 
 ROOT_URLCONF = 'cihrpt_project.urls'
 
@@ -76,6 +83,14 @@ if HAS_DECOUPLE:
             default=config('DATABASE_URL', default=f'sqlite:///{BASE_DIR}/db.sqlite3')
         )
     }
+    
+    # Database connection optimization for production
+    DATABASES['default'].update({
+        'CONN_MAX_AGE': config('DB_CONN_MAX_AGE', default=60, cast=int),
+        'OPTIONS': {
+            'connect_timeout': 20,
+        }
+    })
 else:
     # Development database configuration
     DATABASES = {
@@ -122,6 +137,45 @@ else:
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
+
+# Caching Configuration
+if HAS_DECOUPLE:
+    # Production: Redis cache
+    CACHES = {
+        'default': {
+            'BACKEND': config('CACHE_BACKEND', default='django.core.cache.backends.redis.RedisCache'),
+            'LOCATION': config('REDIS_URL', default='redis://127.0.0.1:6379/1'),
+            'KEY_PREFIX': 'cihrpt',
+            'TIMEOUT': config('CACHE_TIMEOUT', default=300, cast=int),
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+                'CONNECTION_POOL_KWARGS': {
+                    'max_connections': 50,
+                    'retry_on_timeout': True,
+                },
+                'COMPRESSOR': 'django_redis.compressors.zlib.ZlibCompressor',
+                'SERIALIZER': 'django_redis.serializers.json.JSONSerializer',
+            }
+        }
+    }
+    
+    # Session storage in Redis for production
+    SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+    SESSION_CACHE_ALIAS = 'default'
+    SESSION_COOKIE_AGE = config('SESSION_COOKIE_AGE', default=3600, cast=int)  # 1 hour
+else:
+    # Development: Local memory cache
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'cihrpt-cache',
+            'TIMEOUT': 300,
+            'OPTIONS': {
+                'MAX_ENTRIES': 1000,
+                'CULL_FREQUENCY': 3,
+            }
+        }
+    }
 
 # Proxy settings for production
 if HAS_DECOUPLE:
