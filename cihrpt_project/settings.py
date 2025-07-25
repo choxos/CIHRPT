@@ -123,9 +123,14 @@ STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 
+# Proxy settings for production
+if HAS_DECOUPLE:
+    USE_X_FORWARDED_HOST = config('USE_X_FORWARDED_HOST', default=False, cast=bool)
+    USE_X_FORWARDED_PORT = config('USE_X_FORWARDED_PORT', default=False, cast=bool)
+
 # Security settings for production
 if HAS_DECOUPLE and not DEBUG:
-    SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=True, cast=bool)
+    SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=False, cast=bool)  # Nginx handles this
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_HSTS_SECONDS = config('SECURE_HSTS_SECONDS', default=31536000, cast=int)
     SECURE_HSTS_INCLUDE_SUBDOMAINS = config('SECURE_HSTS_INCLUDE_SUBDOMAINS', default=True, cast=bool)
