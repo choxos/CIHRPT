@@ -31,6 +31,39 @@
     <!-- Performance Optimizations -->
     <link rel="stylesheet" href="{% static 'js/performance-optimizations.js' %}">
     
+    <!-- Custom CSS for search bar -->
+    <style>
+        .xera-header-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 2rem;
+        }
+        
+        .xera-search-container {
+            flex-shrink: 0;
+            min-width: 280px;
+        }
+        
+        .xera-search-form .form-control:focus {
+            border-color: var(--xera-primary);
+            box-shadow: 0 0 0 0.2rem rgba(220, 38, 38, 0.25);
+        }
+        
+        .xera-search-form .btn:hover {
+            background-color: var(--xera-primary);
+            border-color: var(--xera-primary);
+            color: white;
+        }
+        
+        @media (max-width: 768px) {
+            .xera-header-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+    
     {% block extra_css %}{% endblock %}
     
     <!-- JSON-LD Structured Data -->
@@ -79,6 +112,32 @@
                     <i class="fas fa-code me-1"></i>API
                 </a>
             </nav>
+            
+            <!-- Top Navigation Search -->
+            <div class="xera-search-container d-none d-md-block">
+                <form action="{% url 'tracker:project_list' %}" method="get" class="xera-search-form">
+                    <div class="input-group input-group-sm">
+                        <input type="text" 
+                               name="search" 
+                               class="form-control" 
+                               placeholder="Search projects..."
+                               value="{{ request.GET.search|default:'' }}"
+                               style="border-radius: 20px 0 0 20px; border: 1px solid #dee2e6; font-size: 14px;">
+                        <button class="btn btn-outline-primary" 
+                                type="submit" 
+                                style="border-radius: 0 20px 20px 0; border-left: none;">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Mobile Search Button -->
+            <div class="d-md-none">
+                <a href="{% url 'tracker:project_list' %}" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-search"></i>
+                </a>
+            </div>
         </div>
     </header>
 

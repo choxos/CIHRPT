@@ -28,6 +28,60 @@
     </div>
 </div>
 
+<!-- Search Section -->
+<div class="xera-card mb-5">
+    <div class="xera-card-body py-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="text-center mb-4">
+                    <h3 class="fw-bold text-primary mb-2">
+                        <i class="fas fa-search me-2"></i>Search CIHR Projects
+                    </h3>
+                    <p class="text-muted mb-0">
+                        Find specific research projects by title, investigators, keywords, or therapeutic areas
+                    </p>
+                </div>
+                
+                <form action="{% url 'tracker:project_list' %}" method="get">
+                    <div class="input-group input-group-lg mb-3">
+                        <span class="input-group-text bg-light">
+                            <i class="fas fa-search text-primary"></i>
+                        </span>
+                        <input type="text" 
+                               name="search" 
+                               class="form-control" 
+                               placeholder="Search by project title, principal investigator, keywords, or therapeutic area..."
+                               style="border-left: none;">
+                        <button class="btn btn-primary btn-lg px-4" type="submit">
+                            <i class="fas fa-arrow-right me-2"></i>Search
+                        </button>
+                    </div>
+                </form>
+                
+                <!-- Quick Search Suggestions -->
+                <div class="d-flex flex-wrap justify-content-center gap-2">
+                    <small class="text-muted me-2">Popular searches:</small>
+                    <a href="{% url 'tracker:project_list' %}?search=cancer" class="badge bg-outline-primary text-decoration-none">
+                        Cancer Research
+                    </a>
+                    <a href="{% url 'tracker:project_list' %}?search=covid" class="badge bg-outline-primary text-decoration-none">
+                        COVID-19
+                    </a>
+                    <a href="{% url 'tracker:project_list' %}?search=diabetes" class="badge bg-outline-primary text-decoration-none">
+                        Diabetes
+                    </a>
+                    <a href="{% url 'tracker:project_list' %}?search=mental health" class="badge bg-outline-primary text-decoration-none">
+                        Mental Health
+                    </a>
+                    <a href="{% url 'tracker:project_list' %}?broad_study_type=trial" class="badge bg-outline-secondary text-decoration-none">
+                        Clinical Trials
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Quick Stats -->
 <div class="row g-4 mb-5">
     <div class="col-md-3">
