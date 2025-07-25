@@ -30,6 +30,9 @@
     <link rel="stylesheet" href="{% static 'css/xera-unified-theme.css' %}">
     <link rel="stylesheet" href="{% static 'css/themes/cihrpt-theme.css' %}">
     
+    <!-- Dark Theme CSS -->
+    <link rel="stylesheet" href="{% static 'css/dark-theme.css' %}">
+    
     <!-- Performance Optimizations -->
     <link rel="stylesheet" href="{% static 'js/performance-optimizations.js' %}">
     
@@ -40,6 +43,11 @@
             align-items: center;
             justify-content: space-between;
             gap: 2rem;
+        }
+        
+        /* Theme Toggle Container */
+        .theme-toggle-container {
+            flex-shrink: 0;
         }
         
         .xera-search-container {
@@ -295,6 +303,9 @@
     
     <!-- Performance Optimizations -->
     <script src="{% static 'js/performance-optimizations.js' %}"></script>
+    
+    <!-- Dark Theme Toggle -->
+    <script src="{% static 'js/theme-toggle.js' %}"></script>
     
     <!-- Chart.js for data visualization -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

@@ -1,0 +1,561 @@
+/* ========================================
+   CIHRPT Dark Theme - Comprehensive Styling
+   ======================================== */
+
+/* CSS Variables for Theme Management */
+:root {
+  /* Light Theme (Default) */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-tertiary: #f1f5f9;
+  --bg-accent: #e2e8f0;
+  
+  --text-primary: #1f2937;
+  --text-secondary: #4b5563;
+  --text-muted: #6b7280;
+  --text-light: #9ca3af;
+  
+  --border-primary: #e5e7eb;
+  --border-secondary: #d1d5db;
+  --border-accent: #f3f4f6;
+  
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  
+  /* CIHR Brand Colors - Same in both themes */
+  --cihr-primary: #dc2626;
+  --cihr-secondary: #991b1b;
+  --cihr-light: #ef4444;
+  --cihr-dark: #7f1d1d;
+  
+  /* Status Colors - Adapted for themes */
+  --success: #10b981;
+  --success-light: #d1fae5;
+  --warning: #f59e0b;
+  --warning-light: #fef3c7;
+  --info: #3b82f6;
+  --info-light: #dbeafe;
+  --danger: #ef4444;
+  --danger-light: #fee2e2;
+}
+
+/* Dark Theme Variables */
+[data-theme="dark"] {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  --bg-accent: #475569;
+  
+  --text-primary: #f8fafc;
+  --text-secondary: #e2e8f0;
+  --text-muted: #cbd5e1;
+  --text-light: #94a3b8;
+  
+  --border-primary: #334155;
+  --border-secondary: #475569;
+  --border-accent: #1e293b;
+  
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.4);
+  
+  /* Status Colors - Dark theme variants */
+  --success-light: #064e3b;
+  --warning-light: #78350f;
+  --info-light: #1e3a8a;
+  --danger-light: #7f1d1d;
+}
+
+/* ========================================
+   BASE ELEMENTS
+   ======================================== */
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ========================================
+   XERA COMPONENTS
+   ======================================== */
+
+/* Xera Header */
+.xera-header {
+  background-color: var(--bg-primary);
+  border-bottom: 1px solid var(--border-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.xera-brand {
+  color: var(--text-primary);
+}
+
+.xera-brand:hover {
+  color: var(--cihr-primary);
+}
+
+/* Xera Navigation */
+.xera-nav-link {
+  color: var(--text-secondary);
+  transition: color 0.2s ease;
+}
+
+.xera-nav-link:hover {
+  color: var(--cihr-primary);
+}
+
+.xera-nav-link.active {
+  color: var(--cihr-primary);
+  background-color: var(--bg-tertiary);
+}
+
+/* Xera Cards */
+.xera-card {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  box-shadow: var(--shadow-md);
+  color: var(--text-primary);
+}
+
+.xera-card-header {
+  background-color: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-primary);
+  color: var(--text-primary);
+}
+
+.xera-card-title {
+  color: var(--text-primary);
+}
+
+.xera-card-body {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+/* ========================================
+   BOOTSTRAP OVERRIDES
+   ======================================== */
+
+/* Tables */
+.table {
+  color: var(--text-primary);
+  background-color: var(--bg-secondary);
+}
+
+.table th {
+  background-color: var(--bg-tertiary) !important;
+  color: var(--text-primary);
+  border-color: var(--border-primary);
+}
+
+.table td {
+  color: var(--text-primary);
+  border-color: var(--border-primary);
+}
+
+.table-hover tbody tr:hover {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.table-light {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+/* Forms */
+.form-control {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-primary);
+  color: var(--text-primary);
+}
+
+.form-control:focus {
+  background-color: var(--bg-secondary);
+  border-color: var(--cihr-primary);
+  color: var(--text-primary);
+  box-shadow: 0 0 0 0.2rem rgba(220, 38, 38, 0.25);
+}
+
+.form-control::placeholder {
+  color: var(--text-muted);
+}
+
+.input-group-text {
+  background-color: var(--bg-tertiary);
+  border-color: var(--border-primary);
+  color: var(--text-secondary);
+}
+
+/* Buttons */
+.btn-primary {
+  background-color: var(--cihr-primary);
+  border-color: var(--cihr-primary);
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  background-color: var(--cihr-secondary);
+  border-color: var(--cihr-secondary);
+}
+
+.btn-outline-primary {
+  color: var(--cihr-primary);
+  border-color: var(--cihr-primary);
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--cihr-primary);
+  border-color: var(--cihr-primary);
+  color: #ffffff;
+}
+
+.btn-secondary {
+  background-color: var(--bg-accent);
+  border-color: var(--border-primary);
+  color: var(--text-primary);
+}
+
+.btn-outline-secondary {
+  color: var(--text-secondary);
+  border-color: var(--border-primary);
+}
+
+.btn-outline-secondary:hover {
+  background-color: var(--bg-accent);
+  border-color: var(--border-primary);
+  color: var(--text-primary);
+}
+
+/* Badges */
+.badge {
+  color: #ffffff;
+}
+
+.bg-outline-primary {
+  background-color: transparent !important;
+  border: 1px solid var(--cihr-primary);
+  color: var(--cihr-primary) !important;
+}
+
+.bg-primary {
+  background-color: var(--cihr-primary) !important;
+}
+
+.bg-secondary {
+  background-color: var(--bg-accent) !important;
+  color: var(--text-primary) !important;
+}
+
+.bg-success {
+  background-color: var(--success) !important;
+}
+
+.bg-info {
+  background-color: var(--info) !important;
+}
+
+.bg-warning {
+  background-color: var(--warning) !important;
+}
+
+.bg-danger {
+  background-color: var(--danger) !important;
+}
+
+.bg-light {
+  background-color: var(--bg-tertiary) !important;
+  color: var(--text-primary) !important;
+}
+
+.bg-dark {
+  background-color: var(--bg-accent) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Text Colors */
+.text-primary {
+  color: var(--cihr-primary) !important;
+}
+
+.text-secondary {
+  color: var(--text-secondary) !important;
+}
+
+.text-muted {
+  color: var(--text-muted) !important;
+}
+
+.text-light {
+  color: var(--text-light) !important;
+}
+
+.text-success {
+  color: var(--success) !important;
+}
+
+.text-info {
+  color: var(--info) !important;
+}
+
+.text-warning {
+  color: var(--warning) !important;
+}
+
+.text-danger {
+  color: var(--danger) !important;
+}
+
+/* Borders */
+.border {
+  border-color: var(--border-primary) !important;
+}
+
+.border-primary {
+  border-color: var(--border-primary) !important;
+}
+
+/* ========================================
+   NAVIGATION & BREADCRUMBS
+   ======================================== */
+
+.breadcrumb {
+  background-color: var(--bg-tertiary);
+}
+
+.breadcrumb-item {
+  color: var(--text-secondary);
+}
+
+.breadcrumb-item.active {
+  color: var(--text-primary);
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+  color: var(--text-muted);
+}
+
+/* Pagination */
+.pagination .page-link {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-primary);
+  color: var(--text-primary);
+}
+
+.pagination .page-link:hover {
+  background-color: var(--bg-tertiary);
+  border-color: var(--border-primary);
+  color: var(--cihr-primary);
+}
+
+.pagination .page-item.active .page-link {
+  background-color: var(--cihr-primary);
+  border-color: var(--cihr-primary);
+  color: #ffffff;
+}
+
+/* ========================================
+   SPECIAL ELEMENTS
+   ======================================== */
+
+/* Dropdown */
+.dropdown-menu {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-primary);
+  box-shadow: var(--shadow-lg);
+}
+
+.dropdown-item {
+  color: var(--text-primary);
+}
+
+.dropdown-item:hover {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.dropdown-divider {
+  border-color: var(--border-primary);
+}
+
+/* Modal */
+.modal-content {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-primary);
+  color: var(--text-primary);
+}
+
+.modal-header {
+  border-bottom-color: var(--border-primary);
+}
+
+.modal-footer {
+  border-top-color: var(--border-primary);
+}
+
+/* Charts - Chart.js Dark Theme */
+[data-theme="dark"] canvas {
+  filter: brightness(0.9);
+}
+
+/* ========================================
+   HOVER EFFECTS
+   ======================================== */
+
+.hover-bg-light:hover {
+  background-color: var(--bg-tertiary) !important;
+}
+
+/* Institution/Project Row Hovers */
+.institution-row:hover {
+  background-color: var(--bg-tertiary) !important;
+  color: var(--text-primary);
+}
+
+.institute-row:hover {
+  background-color: var(--bg-tertiary) !important;
+  color: var(--text-primary);
+}
+
+/* PubMed Links */
+.pubmed-link {
+  color: var(--info) !important;
+  border-bottom-color: var(--info);
+}
+
+.pubmed-link:hover {
+  color: var(--cihr-primary) !important;
+  border-bottom-color: var(--cihr-primary);
+  background-color: var(--bg-tertiary);
+}
+
+/* Institution Links */
+.institution-link,
+.cihr-institute-link,
+.program-link {
+  color: var(--cihr-primary) !important;
+  border-bottom-color: var(--cihr-primary);
+}
+
+.institution-link:hover,
+.cihr-institute-link:hover,
+.program-link:hover {
+  color: var(--cihr-secondary) !important;
+  border-bottom-color: var(--cihr-secondary);
+  background-color: var(--bg-tertiary);
+}
+
+/* ========================================
+   THEME TOGGLE BUTTON
+   ======================================== */
+
+.theme-toggle {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  color: var(--text-primary);
+  border-radius: 20px;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.theme-toggle:hover {
+  background: var(--bg-accent);
+  border-color: var(--cihr-primary);
+  color: var(--cihr-primary);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.theme-toggle i {
+  font-size: 1rem;
+  transition: transform 0.3s ease;
+}
+
+.theme-toggle:hover i {
+  transform: rotate(180deg);
+}
+
+/* ========================================
+   RESPONSIVE ADJUSTMENTS
+   ======================================== */
+
+@media (max-width: 768px) {
+  .xera-card {
+    margin-bottom: 1rem;
+  }
+  
+  .theme-toggle {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+  
+  .theme-toggle span {
+    display: none;
+  }
+}
+
+/* ========================================
+   SCROLLBAR STYLING
+   ======================================== */
+
+/* Webkit browsers */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bg-accent);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cihr-primary);
+}
+
+/* Firefox */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--bg-accent) var(--bg-secondary);
+}
+
+/* ========================================
+   PRINT STYLES
+   ======================================== */
+
+@media print {
+  [data-theme="dark"] {
+    background-color: white !important;
+    color: black !important;
+  }
+  
+  [data-theme="dark"] * {
+    background-color: white !important;
+    color: black !important;
+    border-color: #000 !important;
+  }
+}
+
+/* ========================================
+   SMOOTH TRANSITIONS
+   ======================================== */
+
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Disable transitions during theme change to prevent flash */
+.theme-transitioning * {
+  transition: none !important;
+} 

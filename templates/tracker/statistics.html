@@ -237,17 +237,25 @@
 
 {% block extra_js %}
 <script>
-// Color palette for charts
-const colors = {
-    primary: '#dc2626',
-    secondary: '#991b1b', 
-    success: '#059669',
-    info: '#0891b2',
-    warning: '#d97706',
-    danger: '#dc2626',
-    light: '#f3f4f6',
-    dark: '#374151'
+// Color palette for charts with dark theme support
+const getColors = () => {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    return {
+        primary: '#dc2626',
+        secondary: '#991b1b', 
+        success: '#059669',
+        info: '#0891b2',
+        warning: '#d97706',
+        danger: '#dc2626',
+        light: isDark ? '#475569' : '#f3f4f6',
+        dark: isDark ? '#f8fafc' : '#374151',
+        text: isDark ? '#e2e8f0' : '#4b5563',
+        border: isDark ? '#334155' : '#e5e7eb',
+        grid: isDark ? '#334155' : '#f3f4f6'
+    };
 };
+
+const colors = getColors();
 
 // Study Types Pie Chart
 const studyTypesCtx = document.getElementById('studyTypesChart').getContext('2d');
@@ -679,6 +687,34 @@ new Chart(fundingThemesCtx, {
             y: { beginAtZero: true }
         }
     }
+});
+
+// Theme change listener for charts
+window.addEventListener('themeChanged', () => {
+    // Update colors
+    const newColors = getColors();
+    Object.assign(colors, newColors);
+    
+    // Refresh all charts
+    Chart.instances.forEach(chart => {
+        if (chart && chart.update) {
+            // Update chart options for dark theme
+            if (chart.options.plugins && chart.options.plugins.legend) {
+                chart.options.plugins.legend.labels.color = colors.text;
+            }
+            if (chart.options.scales) {
+                Object.values(chart.options.scales).forEach(scale => {
+                    if (scale.grid) {
+                        scale.grid.color = colors.grid;
+                    }
+                    if (scale.ticks) {
+                        scale.ticks.color = colors.text;
+                    }
+                });
+            }
+            chart.update('none');
+        }
+    });
 });
 </script>
 {% endblock %} 
