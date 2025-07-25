@@ -8,13 +8,23 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Quick-start development settings - unsuitable for production
-SECRET_KEY = 'django-insecure-your-secret-key-here-change-in-production'
+# Import environment configuration (production)
+try:
+    from decouple import config
+    import dj_database_url
+    HAS_DECOUPLE = True
+except ImportError:
+    HAS_DECOUPLE = False
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'cihrpt.xeradb.com']
+# SECURITY WARNING: keep the secret key used in production secret!
+if HAS_DECOUPLE:
+    SECRET_KEY = config('SECRET_KEY', default='django-insecure-your-secret-key-here-change-in-production')
+    DEBUG = config('DEBUG', default=True, cast=bool)
+    ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,cihrpt.xeradb.com').split(',')
+else:
+    SECRET_KEY = 'django-insecure-your-secret-key-here-change-in-production'
+    DEBUG = True
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'cihrpt.xeradb.com']
 
 # Application definition
 INSTALLED_APPS = [
@@ -59,12 +69,21 @@ TEMPLATES = [
 WSGI_APPLICATION = 'cihrpt_project.wsgi.application'
 
 # Database
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+if HAS_DECOUPLE:
+    # Production database configuration
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=config('DATABASE_URL', default=f'sqlite:///{BASE_DIR}/db.sqlite3')
+        )
     }
-}
+else:
+    # Development database configuration
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -90,17 +109,40 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+if HAS_DECOUPLE:
+    # Production static files configuration
+    STATIC_ROOT = config('STATIC_ROOT', default=str(BASE_DIR / 'staticfiles'))
+    MEDIA_ROOT = config('MEDIA_ROOT', default=str(BASE_DIR / 'media'))
+    MEDIA_URL = '/media/'
+else:
+    # Development static files configuration
+    STATIC_ROOT = BASE_DIR / 'staticfiles'
+
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
+
+# Security settings for production
+if HAS_DECOUPLE and not DEBUG:
+    SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=True, cast=bool)
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_HSTS_SECONDS = config('SECURE_HSTS_SECONDS', default=31536000, cast=int)
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = config('SECURE_HSTS_INCLUDE_SUBDOMAINS', default=True, cast=bool)
+    SECURE_HSTS_PRELOAD = config('SECURE_HSTS_PRELOAD', default=True, cast=bool)
+    SECURE_CONTENT_TYPE_NOSNIFF = config('SECURE_CONTENT_TYPE_NOSNIFF', default=True, cast=bool)
+    SECURE_BROWSER_XSS_FILTER = config('SECURE_BROWSER_XSS_FILTER', default=True, cast=bool)
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # CIHRPT specific settings
-CIHRPT_DATA_DIR = Path(__file__).resolve().parent.parent / 'cihr_projects_jsons'
-CIHRPT_CSV_FILE = Path(__file__).resolve().parent.parent / 'cihr_projects.csv'
+if HAS_DECOUPLE:
+    CIHRPT_DATA_DIR = Path(config('CIHRPT_DATA_DIR', default=str(BASE_DIR / 'cihr_projects_jsons')))
+    CIHRPT_CSV_FILE = Path(config('CIHRPT_CSV_FILE', default=str(BASE_DIR / 'cihr_projects.csv')))
+else:
+    CIHRPT_DATA_DIR = BASE_DIR / 'cihr_projects_jsons'
+    CIHRPT_CSV_FILE = BASE_DIR / 'cihr_projects.csv'
 
 # REST Framework configuration
 REST_FRAMEWORK = {
@@ -121,7 +163,7 @@ LOGGING = {
         'file': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'cihrpt.log',
+            'filename': str(BASE_DIR / 'cihrpt.log'),
         },
     },
     'loggers': {
