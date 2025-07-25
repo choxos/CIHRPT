@@ -2,6 +2,31 @@
 {% load static %}
 {% load tracker_filters %}
 
+{% block extra_css %}
+<style>
+.pubmed-link {
+    color: #0d6efd !important;
+    text-decoration: none;
+    border-bottom: 1px dotted #0d6efd;
+    transition: all 0.2s ease;
+}
+
+.pubmed-link:hover {
+    color: #0a58ca !important;
+    border-bottom: 1px solid #0a58ca;
+    background-color: rgba(13, 110, 253, 0.1);
+    padding: 1px 2px;
+    border-radius: 2px;
+}
+
+.pubmed-link::after {
+    content: " 🔗";
+    font-size: 0.8em;
+    opacity: 0.6;
+}
+</style>
+{% endblock %}
+
 {% block breadcrumb %}
 <li class="breadcrumb-item">
     <a href="{% url 'tracker:project_list' %}">Projects</a>
@@ -91,8 +116,20 @@
                 <table class="table table-borderless">
                     {% if project.principal_investigators %}
                     <tr>
-                        <td class="text-muted"><strong>Principal Investigator:</strong></td>
-                        <td>{{ project.principal_investigators }}</td>
+                        <td class="text-muted"><strong>Principal Investigator(s):</strong></td>
+                        <td>{{ project.principal_investigators|pubmed_links }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if project.co_investigators %}
+                    <tr>
+                        <td class="text-muted"><strong>Co-Investigator(s):</strong></td>
+                        <td>{{ project.co_investigators|pubmed_links }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if project.supervisors %}
+                    <tr>
+                        <td class="text-muted"><strong>Supervisor(s):</strong></td>
+                        <td>{{ project.supervisors|pubmed_links }}</td>
                     </tr>
                     {% endif %}
                     {% if project.research_institution %}
@@ -105,6 +142,18 @@
                     <tr>
                         <td class="text-muted"><strong>CIHR Institute:</strong></td>
                         <td>{{ project.primary_institute }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if project.program %}
+                    <tr>
+                        <td class="text-muted"><strong>Program:</strong></td>
+                        <td><span class="badge bg-info">{{ project.program }}</span></td>
+                    </tr>
+                    {% endif %}
+                    {% if project.peer_review_committee %}
+                    <tr>
+                        <td class="text-muted"><strong>Peer Review Committee:</strong></td>
+                        <td>{{ project.peer_review_committee }}</td>
                     </tr>
                     {% endif %}
                     {% if project.competition_year %}
