@@ -62,30 +62,20 @@ class ThemeManager {
     }
     
     createToggleButton() {
-        // Find the navigation container
-        const nav = document.querySelector('.xera-nav');
-        if (!nav) return;
-        
-        // Create toggle button container
-        const toggleContainer = document.createElement('div');
-        toggleContainer.className = 'theme-toggle-container ms-auto';
-        
-        // Create toggle button
+        // Create floating toggle button
         this.toggleButton = document.createElement('button');
-        this.toggleButton.className = 'theme-toggle';
+        this.toggleButton.className = 'theme-toggle-floating';
         this.toggleButton.setAttribute('type', 'button');
         this.toggleButton.setAttribute('title', 'Toggle dark/light theme');
         this.toggleButton.innerHTML = `
             <i class="fas fa-moon" id="theme-icon"></i>
-            <span id="theme-text">Dark</span>
         `;
         
         // Add click handler
         this.toggleButton.addEventListener('click', () => this.toggleTheme());
         
-        // Append to container and nav
-        toggleContainer.appendChild(this.toggleButton);
-        nav.appendChild(toggleContainer);
+        // Append to body
+        document.body.appendChild(this.toggleButton);
         
         // Update button state
         this.updateToggleButton();
@@ -95,15 +85,12 @@ class ThemeManager {
         if (!this.toggleButton) return;
         
         const icon = this.toggleButton.querySelector('#theme-icon');
-        const text = this.toggleButton.querySelector('#theme-text');
         
         if (this.currentTheme === 'dark') {
             icon.className = 'fas fa-sun';
-            text.textContent = 'Light';
             this.toggleButton.setAttribute('title', 'Switch to light theme');
         } else {
             icon.className = 'fas fa-moon';
-            text.textContent = 'Dark';
             this.toggleButton.setAttribute('title', 'Switch to dark theme');
         }
     }

@@ -448,37 +448,59 @@ body {
 }
 
 /* ========================================
-   THEME TOGGLE BUTTON
+   FLOATING THEME TOGGLE BUTTON
    ======================================== */
 
-.theme-toggle {
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-primary);
-  color: var(--text-primary);
-  border-radius: 20px;
-  padding: 0.375rem 0.75rem;
-  font-size: 0.875rem;
-  transition: all 0.3s ease;
+.theme-toggle-floating {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1050;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--cihr-primary);
+  border: none;
+  color: white;
+  font-size: 1.25rem;
   cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: center;
 }
 
-.theme-toggle:hover {
-  background: var(--bg-accent);
-  border-color: var(--cihr-primary);
-  color: var(--cihr-primary);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+[data-theme="dark"] .theme-toggle-floating {
+  background: var(--cihr-primary);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
-.theme-toggle i {
-  font-size: 1rem;
+.theme-toggle-floating:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  background: var(--cihr-secondary);
+}
+
+[data-theme="dark"] .theme-toggle-floating:hover {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+  background: var(--cihr-secondary);
+}
+
+.theme-toggle-floating:active {
+  transform: translateY(0);
+}
+
+.theme-toggle-floating:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+}
+
+.theme-toggle-floating i {
   transition: transform 0.3s ease;
 }
 
-.theme-toggle:hover i {
+.theme-toggle-floating:hover i {
   transform: rotate(180deg);
 }
 
@@ -491,13 +513,12 @@ body {
     margin-bottom: 1rem;
   }
   
-  .theme-toggle {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.75rem;
-  }
-  
-  .theme-toggle span {
-    display: none;
+  .theme-toggle-floating {
+    bottom: 20px;
+    right: 20px;
+    width: 48px;
+    height: 48px;
+    font-size: 1.1rem;
   }
 }
 
