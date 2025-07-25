@@ -24,6 +24,37 @@
     font-size: 0.8em;
     opacity: 0.6;
 }
+
+/* Improved table layout */
+.table td {
+    padding: 0.75rem 0.5rem;
+    vertical-align: top;
+    word-break: break-word;
+    overflow-wrap: break-word;
+}
+
+.table tr td:first-child {
+    width: 40% !important;
+    max-width: 0;
+    font-size: 0.9em;
+}
+
+.table tr td:last-child {
+    width: 60% !important;
+    max-width: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .table tr td:first-child {
+        width: 35% !important;
+        font-size: 0.85em;
+    }
+    
+    .table tr td:last-child {
+        width: 65% !important;
+    }
+}
 </style>
 {% endblock %}
 
@@ -67,9 +98,13 @@
             </div>
             <div class="xera-card-body">
                 <table class="table table-borderless">
+                    <colgroup>
+                        <col style="width: 40%;">
+                        <col style="width: 60%;">
+                    </colgroup>
                     <tr>
-                        <td class="text-muted"><strong>Study Type:</strong></td>
-                        <td>
+                        <td class="text-muted align-top" style="word-wrap: break-word;"><strong>Study Type:</strong></td>
+                        <td class="align-top" style="word-wrap: break-word;">
                             <span class="badge bg-secondary">{{ project.broad_study_type|title }}</span>
                             {% if project.narrow_study_type %}
                             <span class="badge bg-outline-secondary ms-1">{{ project.narrow_study_type|title }}</span>
@@ -78,26 +113,26 @@
                     </tr>
                     {% if project.therapeutic_area %}
                     <tr>
-                        <td class="text-muted"><strong>Therapeutic Area:</strong></td>
-                        <td><span class="badge bg-info">{{ project.therapeutic_area|title }}</span></td>
+                        <td class="text-muted align-top" style="word-wrap: break-word;"><strong>Therapeutic Area:</strong></td>
+                        <td class="align-top" style="word-wrap: break-word;"><span class="badge bg-info">{{ project.therapeutic_area|title }}</span></td>
                     </tr>
                     {% endif %}
                     {% if project.primary_theme %}
                     <tr>
-                        <td class="text-muted"><strong>Research Theme:</strong></td>
-                        <td><span class="badge bg-success">{{ project.primary_theme }}</span></td>
+                        <td class="text-muted align-top" style="word-wrap: break-word;"><strong>Research Theme:</strong></td>
+                        <td class="align-top" style="word-wrap: break-word;"><span class="badge bg-success">{{ project.primary_theme }}</span></td>
                     </tr>
                     {% endif %}
                     {% if project.disease_area %}
                     <tr>
-                        <td class="text-muted"><strong>Disease Area:</strong></td>
-                        <td>{{ project.disease_area }}</td>
+                        <td class="text-muted align-top" style="word-wrap: break-word;"><strong>Disease Area:</strong></td>
+                        <td class="align-top" style="word-wrap: break-word;">{{ project.disease_area }}</td>
                     </tr>
                     {% endif %}
                     {% if project.data_type != 'unclear' %}
                     <tr>
-                        <td class="text-muted"><strong>Data Type:</strong></td>
-                        <td><span class="badge bg-warning">{{ project.data_type|title }}</span></td>
+                        <td class="text-muted align-top" style="word-wrap: break-word;"><strong>Data Type:</strong></td>
+                        <td class="align-top" style="word-wrap: break-word;"><span class="badge bg-warning">{{ project.data_type|title }}</span></td>
                     </tr>
                     {% endif %}
                 </table>
@@ -114,58 +149,62 @@
             </div>
             <div class="xera-card-body">
                 <table class="table table-borderless">
+                    <colgroup>
+                        <col style="width: 40%;">
+                        <col style="width: 60%;">
+                    </colgroup>
                     {% if project.principal_investigators %}
                     <tr>
-                        <td class="text-muted"><strong>Principal Investigator(s):</strong></td>
-                        <td>{{ project.principal_investigators|pubmed_links }}</td>
+                        <td class="text-muted align-top" style="word-wrap: break-word;"><strong>Principal Investigator(s):</strong></td>
+                        <td class="align-top" style="word-wrap: break-word;">{{ project.principal_investigators|pubmed_links }}</td>
                     </tr>
                     {% endif %}
-                    {% if project.co_investigators %}
+                    {% if project.co_investigators|has_content %}
                     <tr>
-                        <td class="text-muted"><strong>Co-Investigator(s):</strong></td>
-                        <td>{{ project.co_investigators|pubmed_links }}</td>
+                        <td class="text-muted align-top" style="word-wrap: break-word;"><strong>Co-Investigator(s):</strong></td>
+                        <td class="align-top" style="word-wrap: break-word;">{{ project.co_investigators|pubmed_links }}</td>
                     </tr>
                     {% endif %}
-                    {% if project.supervisors %}
+                    {% if project.supervisors|has_content %}
                     <tr>
-                        <td class="text-muted"><strong>Supervisor(s):</strong></td>
-                        <td>{{ project.supervisors|pubmed_links }}</td>
+                        <td class="text-muted align-top" style="word-wrap: break-word;"><strong>Supervisor(s):</strong></td>
+                        <td class="align-top" style="word-wrap: break-word;">{{ project.supervisors|pubmed_links }}</td>
                     </tr>
                     {% endif %}
                     {% if project.research_institution %}
                     <tr>
-                        <td class="text-muted"><strong>Institution:</strong></td>
-                        <td>{{ project.research_institution }}</td>
+                        <td class="text-muted align-top" style="word-wrap: break-word;"><strong>Institution:</strong></td>
+                        <td class="align-top" style="word-wrap: break-word;">{{ project.research_institution }}</td>
                     </tr>
                     {% endif %}
                     {% if project.primary_institute %}
                     <tr>
-                        <td class="text-muted"><strong>CIHR Institute:</strong></td>
-                        <td>{{ project.primary_institute }}</td>
+                        <td class="text-muted align-top" style="word-wrap: break-word;"><strong>CIHR Institute:</strong></td>
+                        <td class="align-top" style="word-wrap: break-word;">{{ project.primary_institute }}</td>
                     </tr>
                     {% endif %}
-                    {% if project.program %}
+                    {% if project.program|has_content %}
                     <tr>
-                        <td class="text-muted"><strong>Program:</strong></td>
-                        <td><span class="badge bg-info">{{ project.program }}</span></td>
+                        <td class="text-muted align-top" style="word-wrap: break-word;"><strong>Program:</strong></td>
+                        <td class="align-top" style="word-wrap: break-word;"><span class="badge bg-info">{{ project.program }}</span></td>
                     </tr>
                     {% endif %}
-                    {% if project.peer_review_committee %}
+                    {% if project.peer_review_committee|has_content %}
                     <tr>
-                        <td class="text-muted"><strong>Peer Review Committee:</strong></td>
-                        <td>{{ project.peer_review_committee }}</td>
+                        <td class="text-muted align-top" style="word-wrap: break-word;"><strong>Peer Review Committee:</strong></td>
+                        <td class="align-top" style="word-wrap: break-word;">{{ project.peer_review_committee }}</td>
                     </tr>
                     {% endif %}
                     {% if project.competition_year %}
                     <tr>
-                        <td class="text-muted"><strong>Competition Year:</strong></td>
-                        <td><span class="badge bg-dark">{{ project.competition_year }}</span></td>
+                        <td class="text-muted align-top" style="word-wrap: break-word;"><strong>Competition Year:</strong></td>
+                        <td class="align-top" style="word-wrap: break-word;"><span class="badge bg-dark">{{ project.competition_year }}</span></td>
                     </tr>
                     {% endif %}
                     {% if project.term_years_months %}
                     <tr>
-                        <td class="text-muted"><strong>Term:</strong></td>
-                        <td>{{ project.term_years_months }}</td>
+                        <td class="text-muted align-top" style="word-wrap: break-word;"><strong>Term:</strong></td>
+                        <td class="align-top" style="word-wrap: break-word;">{{ project.term_years_months }}</td>
                     </tr>
                     {% endif %}
                 </table>

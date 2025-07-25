@@ -47,4 +47,18 @@ def single_pubmed_link(value):
     
     encoded_name = quote(f'"{name}"[Author]')
     pubmed_url = f"https://pubmed.ncbi.nlm.nih.gov/?term={encoded_name}"
-    return mark_safe(f'<a href="{pubmed_url}" target="_blank" class="pubmed-link" title="Search {name} on PubMed">{name}</a>') 
+    return mark_safe(f'<a href="{pubmed_url}" target="_blank" class="pubmed-link" title="Search {name} on PubMed">{name}</a>')
+
+@register.filter
+def has_content(value):
+    """Check if a field has meaningful content (not empty, None, whitespace, or N/A)"""
+    if not value:
+        return False
+    
+    # Convert to string and strip whitespace
+    str_value = str(value).strip()
+    
+    # Check for empty string, "N/A", "n/a", "None", etc.
+    empty_values = {'', 'n/a', 'none', 'null', 'not specified', 'not available', '-'}
+    
+    return str_value.lower() not in empty_values 
