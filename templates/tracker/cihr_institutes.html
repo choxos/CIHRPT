@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active" aria-current="page">CIHR Institutes</li>
+{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <h2 class="fw-bold text-primary mb-2">
+            <i class="fas fa-building me-2"></i>CIHR Institutes
+        </h2>
+        <p class="text-muted mb-0">
+            Explore {{ total_institutes }} CIHR institutes and their funded projects
+        </p>
+    </div>
+    <div class="col-lg-4">
+        <form method="get" class="d-flex">
+            <input type="text" 
+                   name="search" 
+                   class="form-control me-2" 
+                   placeholder="Search CIHR institutes..."
+                   value="{{ search_query }}"
+                   autocomplete="off">
+            <button class="btn btn-primary" type="submit">
+                <i class="fas fa-search"></i>
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="xera-card text-center">
+            <div class="xera-card-body">
+                <i class="fas fa-building text-primary mb-2" style="font-size: 2rem;"></i>
+                <h4 class="fw-bold text-primary">{{ total_institutes }}</h4>
+                <p class="text-muted mb-0">CIHR Institutes</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="xera-card text-center">
+            <div class="xera-card-body">
+                <i class="fas fa-flask text-success mb-2" style="font-size: 2rem;"></i>
+                <h4 class="fw-bold text-success">{{ page_obj.paginator.count }}</h4>
+                <p class="text-muted mb-0">Showing Results</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="xera-card text-center">
+            <div class="xera-card-body">
+                <i class="fas fa-chart-line text-info mb-2" style="font-size: 2rem;"></i>
+                <h4 class="fw-bold text-info">
+                    {% if page_obj.object_list %}
+                        {{ page_obj.object_list.0.project_count }}
+                    {% else %}
+                        0
+                    {% endif %}
+                </h4>
+                <p class="text-muted mb-0">Top Institute Projects</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="xera-card text-center">
+            <div class="xera-card-body">
+                <i class="fas fa-dollar-sign text-warning mb-2" style="font-size: 2rem;"></i>
+                <h4 class="fw-bold text-warning">
+                    {% if page_obj.object_list %}
+                        ${{ page_obj.object_list.0.total_funding|floatformat:0|slice:":2" }}.{{ page_obj.object_list.0.total_funding|floatformat:0|slice:"2:3" }}B
+                    {% else %}
+                        $0
+                    {% endif %}
+                </h4>
+                <p class="text-muted mb-0">Top Institute Funding</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CIHR Institutes List -->
+<div class="xera-card">
+    <div class="xera-card-header">
+        <h5 class="xera-card-title mb-0">
+            <i class="fas fa-list me-2"></i>CIHR Institutes
+            {% if search_query %}
+                <span class="badge bg-primary ms-2">{{ page_obj.paginator.count }} results for "{{ search_query }}"</span>
+            {% endif %}
+        </h5>
+    </div>
+    <div class="xera-card-body p-0">
+        {% if page_obj.object_list %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th width="5%">#</th>
+                            <th width="50%">CIHR Institute</th>
+                            <th width="15%" class="text-center">Projects</th>
+                            <th width="15%" class="text-center">Total Funding</th>
+                            <th width="15%" class="text-center">Avg Funding</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for institute in page_obj.object_list %}
+                        <tr class="institute-row" style="cursor: pointer;" 
+                            onclick="window.location.href='{% url 'tracker:project_list' %}?primary_institute={{ institute.primary_institute|urlencode }}'">
+                            <td class="text-muted">
+                                {{ forloop.counter|add:page_obj.start_index|add:"-1" }}
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="institute-icon me-3">
+                                        <i class="fas fa-building text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1 institute-name">{{ institute.primary_institute }}</h6>
+                                        <small class="text-muted">CIHR Institute</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-primary fs-6">{{ institute.project_count }}</span>
+                            </td>
+                            <td class="text-center">
+                                <strong class="text-success">
+                                    ${{ institute.total_funding|floatformat:0 }}
+                                </strong>
+                            </td>
+                            <td class="text-center">
+                                <span class="text-muted">
+                                    ${{ institute.avg_funding|floatformat:0 }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-search text-muted mb-3" style="font-size: 3rem;"></i>
+                <h5 class="text-muted">No CIHR institutes found</h5>
+                {% if search_query %}
+                    <p class="text-muted mb-3">No institutes match your search "{{ search_query }}"</p>
+                    <a href="{% url 'tracker:cihr_institutes' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-times me-1"></i>Clear Search
+                    </a>
+                {% else %}
+                    <p class="text-muted">Try adjusting your search criteria</p>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if page_obj.has_other_pages %}
+<nav aria-label="Institute pagination" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}">
+                    <i class="fas fa-angle-double-left"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">
+                    <i class="fas fa-angle-left"></i>
+                </a>
+            </li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <li class="page-item active">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}">{{ num }}</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">
+                    <i class="fas fa-angle-right"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}">
+                    <i class="fas fa-angle-double-right"></i>
+                </a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.institute-row:hover {
+    background-color: rgba(220, 38, 38, 0.05) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.2s ease;
+}
+
+.institute-name {
+    color: #dc2626;
+    font-weight: 600;
+    transition: color 0.2s ease;
+}
+
+.institute-row:hover .institute-name {
+    color: #991b1b;
+}
+
+.institute-icon {
+    font-size: 1.2em;
+    width: 30px;
+    text-align: center;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #374151;
+    background-color: #f8fafc !important;
+}
+
+.table td {
+    vertical-align: middle;
+    border-color: #e5e7eb;
+}
+
+.badge {
+    font-size: 0.875em;
+    padding: 0.375em 0.75em;
+}
+</style>
+{% endblock %} 

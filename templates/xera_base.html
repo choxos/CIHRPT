@@ -105,6 +105,12 @@
                 <a href="{% url 'tracker:project_list' %}" class="xera-nav-link {% if 'project' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="fas fa-file-alt me-1"></i>Projects
                 </a>
+                <a href="{% url 'tracker:institutions' %}" class="xera-nav-link {% if 'institutions' in request.resolver_match.url_name and 'cihr' not in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-university me-1"></i>Institutions
+                </a>
+                <a href="{% url 'tracker:cihr_institutes' %}" class="xera-nav-link {% if 'cihr' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-building me-1"></i>CIHR Institutes
+                </a>
                 <a href="{% url 'tracker:statistics' %}" class="xera-nav-link {% if 'statistics' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="fas fa-chart-bar me-1"></i>Statistics
                 </a>

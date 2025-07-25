@@ -14,6 +14,8 @@ urlpatterns = [
     path('projects/', views.project_list, name='project_list'),
     path('projects/<str:project_id>/', views.project_detail, name='project_detail'),
     path('statistics/', views.statistics, name='statistics'),
+    path('institutions/', views.institutions, name='institutions'),
+    path('cihr-institutes/', views.cihr_institutes, name='cihr_institutes'),
     
     # AJAX endpoints
     path('api/search/', views.api_project_search, name='api_search'),

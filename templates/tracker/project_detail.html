@@ -25,6 +25,34 @@
     opacity: 0.6;
 }
 
+/* Clickable institution and program links */
+.institution-link, .cihr-institute-link, .program-link {
+    color: #dc2626 !important;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border-bottom: 1px dotted #dc2626;
+}
+
+.institution-link:hover, .cihr-institute-link:hover, .program-link:hover {
+    color: #991b1b !important;
+    border-bottom: 1px solid #991b1b;
+    background-color: rgba(220, 38, 38, 0.1);
+    padding: 1px 2px;
+    border-radius: 2px;
+}
+
+.program-link .badge {
+    transition: all 0.2s ease;
+    max-width: 100%;
+    display: inline-block;
+}
+
+.program-link:hover .badge {
+    background-color: #0056b3 !important;
+    transform: scale(1.02);
+}
+
 /* Improved table layout */
 .table td {
     padding: 0.75rem 0.5rem;
@@ -174,19 +202,37 @@
                     {% if project.research_institution %}
                     <tr>
                         <td class="text-muted align-top" style="word-wrap: break-word;"><strong>Institution:</strong></td>
-                        <td class="align-top" style="word-wrap: break-word;">{{ project.research_institution }}</td>
+                        <td class="align-top" style="word-wrap: break-word;">
+                            <a href="{% url 'tracker:project_list' %}?research_institution={{ project.research_institution|urlencode }}" 
+                               class="text-decoration-none institution-link" 
+                               title="View all projects from {{ project.research_institution }}">
+                                {{ project.research_institution }}
+                            </a>
+                        </td>
                     </tr>
                     {% endif %}
                     {% if project.primary_institute %}
                     <tr>
                         <td class="text-muted align-top" style="word-wrap: break-word;"><strong>CIHR Institute:</strong></td>
-                        <td class="align-top" style="word-wrap: break-word;">{{ project.primary_institute }}</td>
+                        <td class="align-top" style="word-wrap: break-word;">
+                            <a href="{% url 'tracker:project_list' %}?primary_institute={{ project.primary_institute|urlencode }}" 
+                               class="text-decoration-none cihr-institute-link" 
+                               title="View all projects from {{ project.primary_institute }}">
+                                {{ project.primary_institute }}
+                            </a>
+                        </td>
                     </tr>
                     {% endif %}
                     {% if project.program|has_content %}
                     <tr>
                         <td class="text-muted align-top" style="word-wrap: break-word;"><strong>Program:</strong></td>
-                        <td class="align-top" style="word-wrap: break-word;"><span class="badge bg-info">{{ project.program }}</span></td>
+                        <td class="align-top" style="word-wrap: break-word; max-width: 0; overflow: hidden;">
+                            <a href="{% url 'tracker:project_list' %}?program={{ project.program|urlencode }}" 
+                               class="text-decoration-none program-link" 
+                               title="View all projects in {{ project.program }} program">
+                                <span class="badge bg-info text-wrap" style="white-space: normal; word-break: break-word; max-width: 100%;">{{ project.program }}</span>
+                            </a>
+                        </td>
                     </tr>
                     {% endif %}
                     {% if project.peer_review_committee|has_content %}

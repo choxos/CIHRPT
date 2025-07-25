@@ -288,6 +288,106 @@ def api_project_search(request):
     return JsonResponse({'results': results})
 
 
+def institutions(request):
+    """Research institutions page showing all institutions with project counts"""
+    # Get all research institutions with project counts
+    institutions_data = CIHRProject.objects.exclude(
+        research_institution__isnull=True
+    ).exclude(
+        research_institution=''
+    ).exclude(
+        research_institution__iexact='N/A'
+    ).values('research_institution').annotate(
+        project_count=Count('research_institution')
+    ).order_by('-project_count')
+    
+    # Calculate total funding by institution
+    for institution in institutions_data:
+        total_funding = 0
+        funding_count = 0
+        for project in CIHRProject.objects.filter(research_institution=institution['research_institution']).exclude(cihr_amounts__isnull=True).exclude(cihr_amounts=''):
+            try:
+                amount = float(project.cihr_amounts.replace('$', '').replace(',', ''))
+                total_funding += amount
+                funding_count += 1
+            except (ValueError, AttributeError):
+                pass
+        institution['total_funding'] = total_funding
+        institution['funding_projects'] = funding_count
+        institution['avg_funding'] = total_funding / funding_count if funding_count > 0 else 0
+    
+    # Search functionality
+    search_query = request.GET.get('search', '')
+    if search_query:
+        institutions_data = [inst for inst in institutions_data if search_query.lower() in inst['research_institution'].lower()]
+    
+    # Pagination
+    paginator = Paginator(institutions_data, 25)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'page_title': 'Research Institutions',
+        'page_description': f'Browse {len(institutions_data)} research institutions funded by CIHR',
+        'page_icon': 'fas fa-university',
+        'show_breadcrumb': True,
+        'page_obj': page_obj,
+        'search_query': search_query,
+        'total_institutions': len(institutions_data),
+    }
+    return render(request, 'tracker/institutions.html', context)
+
+
+def cihr_institutes(request):
+    """CIHR institutes page showing all CIHR institutes with project counts"""
+    # Get all CIHR institutes with project counts
+    cihr_institutes_data = CIHRProject.objects.exclude(
+        primary_institute__isnull=True
+    ).exclude(
+        primary_institute=''
+    ).exclude(
+        primary_institute__iexact='N/A'
+    ).values('primary_institute').annotate(
+        project_count=Count('primary_institute')
+    ).order_by('-project_count')
+    
+    # Calculate total funding by CIHR institute
+    for institute in cihr_institutes_data:
+        total_funding = 0
+        funding_count = 0
+        for project in CIHRProject.objects.filter(primary_institute=institute['primary_institute']).exclude(cihr_amounts__isnull=True).exclude(cihr_amounts=''):
+            try:
+                amount = float(project.cihr_amounts.replace('$', '').replace(',', ''))
+                total_funding += amount
+                funding_count += 1
+            except (ValueError, AttributeError):
+                pass
+        institute['total_funding'] = total_funding
+        institute['funding_projects'] = funding_count
+        institute['avg_funding'] = total_funding / funding_count if funding_count > 0 else 0
+    
+    # Search functionality
+    search_query = request.GET.get('search', '')
+    if search_query:
+        cihr_institutes_data = [inst for inst in cihr_institutes_data if search_query.lower() in inst['primary_institute'].lower()]
+    
+    # Pagination
+    paginator = Paginator(cihr_institutes_data, 25)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'page_title': 'CIHR Institutes',
+        'page_description': f'Browse {len(cihr_institutes_data)} CIHR institutes and their funded projects',
+        'page_icon': 'fas fa-building',
+        'show_breadcrumb': True,
+        'page_obj': page_obj,
+        'search_query': search_query,
+        'total_institutes': len(cihr_institutes_data),
+    }
+    return render(request, 'tracker/cihr_institutes.html', context)
+
+
 # REST API ViewSets
 class CIHRProjectViewSet(viewsets.ModelViewSet):
     """REST API ViewSet for CIHR projects"""
