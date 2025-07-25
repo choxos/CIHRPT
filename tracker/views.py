@@ -20,8 +20,8 @@ def home(request):
         'page_icon': 'fas fa-flag',
         'total_projects': CIHRProject.objects.count(),
         'broad_study_types': CIHRProject.objects.values('broad_study_type').annotate(count=Count('broad_study_type')).order_by('-count'),
-        'therapeutic_areas': CIHRProject.objects.exclude(therapeutic_area__isnull=True).exclude(therapeutic_area='').values('therapeutic_area').annotate(count=Count('therapeutic_area')).order_by('-count')[:10],
-        'primary_institutes': CIHRProject.objects.exclude(primary_institute__isnull=True).exclude(primary_institute='').values('primary_institute').annotate(count=Count('primary_institute')).order_by('-count')[:5],
+        'therapeutic_areas': CIHRProject.objects.exclude(therapeutic_area__isnull=True).exclude(therapeutic_area='').exclude(therapeutic_area__iexact='N/A').values('therapeutic_area').annotate(count=Count('therapeutic_area')).order_by('-count')[:10],
+        'primary_institutes': CIHRProject.objects.exclude(primary_institute__isnull=True).exclude(primary_institute='').exclude(primary_institute__iexact='N/A').values('primary_institute').annotate(count=Count('primary_institute')).order_by('-count')[:5],
     }
     return render(request, 'tracker/home.html', context)
 
@@ -73,9 +73,9 @@ def project_list(request):
     # Get filter options
     filter_options = {
         'broad_study_types': CIHRProject.objects.values_list('broad_study_type', flat=True).distinct(),
-        'therapeutic_areas': CIHRProject.objects.exclude(therapeutic_area__isnull=True).exclude(therapeutic_area='').values_list('therapeutic_area', flat=True).distinct()[:20],
-        'primary_institutes': CIHRProject.objects.exclude(primary_institute__isnull=True).exclude(primary_institute='').values_list('primary_institute', flat=True).distinct(),
-        'primary_themes': CIHRProject.objects.exclude(primary_theme__isnull=True).exclude(primary_theme='').values_list('primary_theme', flat=True).distinct(),
+        'therapeutic_areas': CIHRProject.objects.exclude(therapeutic_area__isnull=True).exclude(therapeutic_area='').exclude(therapeutic_area__iexact='N/A').values_list('therapeutic_area', flat=True).distinct()[:20],
+        'primary_institutes': CIHRProject.objects.exclude(primary_institute__isnull=True).exclude(primary_institute='').exclude(primary_institute__iexact='N/A').values_list('primary_institute', flat=True).distinct(),
+        'primary_themes': CIHRProject.objects.exclude(primary_theme__isnull=True).exclude(primary_theme='').exclude(primary_theme__iexact='N/A').values_list('primary_theme', flat=True).distinct(),
         'competition_years': sorted(set([year[:4] for year in CIHRProject.objects.exclude(competition_year_month__isnull=True).values_list('competition_year_month', flat=True) if year]), reverse=True),
     }
     
@@ -126,13 +126,13 @@ def statistics(request):
     study_types = CIHRProject.objects.values('broad_study_type').annotate(count=Count('broad_study_type')).order_by('-count')
     
     # Therapeutic area distribution
-    therapeutic_areas = CIHRProject.objects.exclude(therapeutic_area__isnull=True).exclude(therapeutic_area='').values('therapeutic_area').annotate(count=Count('therapeutic_area')).order_by('-count')[:15]
+    therapeutic_areas = CIHRProject.objects.exclude(therapeutic_area__isnull=True).exclude(therapeutic_area='').exclude(therapeutic_area__iexact='N/A').values('therapeutic_area').annotate(count=Count('therapeutic_area')).order_by('-count')[:15]
     
     # Institute distribution
-    institutes = CIHRProject.objects.exclude(primary_institute__isnull=True).exclude(primary_institute='').values('primary_institute').annotate(count=Count('primary_institute')).order_by('-count')[:10]
+    institutes = CIHRProject.objects.exclude(primary_institute__isnull=True).exclude(primary_institute='').exclude(primary_institute__iexact='N/A').values('primary_institute').annotate(count=Count('primary_institute')).order_by('-count')[:10]
     
     # Theme distribution
-    themes = CIHRProject.objects.exclude(primary_theme__isnull=True).exclude(primary_theme='').values('primary_theme').annotate(count=Count('primary_theme')).order_by('-count')[:10]
+    themes = CIHRProject.objects.exclude(primary_theme__isnull=True).exclude(primary_theme='').exclude(primary_theme__iexact='N/A').values('primary_theme').annotate(count=Count('primary_theme')).order_by('-count')[:10]
     
     # Year distribution
     year_distribution = {}
