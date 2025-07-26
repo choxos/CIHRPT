@@ -1241,3 +1241,23 @@ Not Found: /sw.js
 - Broken pipe from ('127.0.0.1', 50465)
 "GET /statistics/ HTTP/1.1" 200 39530
 "GET /projects/?search=cancer HTTP/1.1" 200 182871
+"GET /projects/ HTTP/1.1" 200 194443
+"GET /static/js/performance-optimizations.js HTTP/1.1" 304 0
+"GET /static/js/sw.js HTTP/1.1" 404 1951
+"GET /static/favicon.svg HTTP/1.1" 304 0
+Not Found: /sw.js
+"GET /sw.js HTTP/1.1" 404 4468
+/Users/choxos/Documents/GitHub/CIHRPT/cihrpt_project/settings.py changed, reloading.
+/Users/choxos/Documents/GitHub/CIHRPT/cihrpt_project/settings.py changed, reloading.
+/Users/choxos/Documents/GitHub/CIHRPT/cihrpt_project/settings.py changed, reloading.
+/Users/choxos/Documents/GitHub/CIHRPT/cihrpt_project/settings.py changed, reloading.
+/Users/choxos/Documents/GitHub/CIHRPT/cihrpt_project/settings.py changed, reloading.
+/Users/choxos/Documents/GitHub/CIHRPT/cihrpt_project/settings.py changed, reloading.
+/Users/choxos/Documents/GitHub/CIHRPT/cihrpt_project/settings.py changed, reloading.
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader

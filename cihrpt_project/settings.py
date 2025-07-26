@@ -21,10 +21,16 @@ if HAS_DECOUPLE:
     SECRET_KEY = config('SECRET_KEY', default='django-insecure-your-secret-key-here-change-in-production')
     DEBUG = config('DEBUG', default=True, cast=bool)
     ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,cihrpt.xeradb.com').split(',')
+    # Server configuration
+    PORT = config('PORT', default=8000, cast=int)
+    HOST = config('HOST', default='127.0.0.1')
 else:
     SECRET_KEY = 'django-insecure-your-secret-key-here-change-in-production'
     DEBUG = True
     ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'cihrpt.xeradb.com']
+    # Server configuration
+    PORT = 8000
+    HOST = '127.0.0.1'
 
 # Application definition
 INSTALLED_APPS = [

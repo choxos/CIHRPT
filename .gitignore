@@ -105,3 +105,4 @@ celerybeat-schedule
 .mypy_cache/
 .dmypy.json
 dmypy.json
+.env
