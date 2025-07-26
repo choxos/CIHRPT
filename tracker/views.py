@@ -129,23 +129,8 @@ def get_funding_stats_optimized():
 def home(request):
     """Home page with overview statistics - optimized with database aggregation"""
     
-    # Use database aggregation for funding calculation
-    funding_stats = CIHRProject.objects.exclude(
-        cihr_amounts__isnull=True
-    ).exclude(
-        cihr_amounts=''
-    ).exclude(
-        cihr_amounts__iexact='N/A'
-    ).values('cihr_amounts').annotate(
-        funding_amount=Value(0, output_field=models.FloatField())  # Placeholder, will be calculated in Python
-    ).exclude(
-        funding_amount__isnull=True
-    ).exclude(
-        funding_amount__lte=0
-    ).aggregate(
-        total_funding=Sum('funding_amount'),
-        funding_projects=Count('id')
-    )
+    # Get proper funding statistics using the working function
+    funding_stats = get_funding_stats_optimized()
     
     # Get cached statistics or calculate them
     cache_key = 'home_stats'
@@ -185,8 +170,8 @@ def home(request):
         'page_description': 'Comprehensive database of Canadian Institutes of Health Research funded projects',
         'page_icon': 'fas fa-flag',
         'total_projects': cached_stats['total_projects'],
-        'total_funding': funding_stats['total_funding'] or 0,
-        'funding_projects': funding_stats['funding_projects'] or 0,
+        'total_funding': funding_stats['total_funding'],
+        'funding_projects': funding_stats['project_count'],
         'therapeutic_areas': cached_stats['therapeutic_areas'],
         'primary_institutes': cached_stats['primary_institutes'],
     }
@@ -534,52 +519,78 @@ def api_project_search(request):
 
 @cache_page(60 * 10)  # Cache for 10 minutes
 def institutions(request):
-    """Research institutions page - completely optimized"""
+    """Research institutions page - highly optimized"""
     
-    # Get institutions with aggregated data in a single query
-    institutions_query = CIHRProject.objects.exclude(
-        research_institution__isnull=True
-    ).exclude(
-        research_institution=''
-    ).exclude(
-        research_institution__iexact='N/A'
-    ).annotate(
-        funding_amount=safe_funding_annotation()
-    ).values('research_institution').annotate(
-        project_count=Count('research_institution'),
-        total_funding=Sum(
-            Case(
-                When(funding_amount__gt=0, then='funding_amount'),
-                default=0,
-                output_field=FloatField()
-            )
-        ),
-        funding_projects=Count(
-            Case(
-                When(funding_amount__gt=0, then=1),
-                output_field=FloatField()
-            )
-        ),
-        avg_funding=Avg(
-            Case(
-                When(funding_amount__gt=0, then='funding_amount'),
-                output_field=FloatField()
-            )
-        )
-    ).order_by('-project_count')
-    
-    # Search functionality at database level
+    cache_key = 'institutions_with_funding_v2'
     search_query = request.GET.get('search', '')
-    if search_query:
-        institutions_query = institutions_query.filter(
-            research_institution__icontains=search_query
-        )
     
-    # Get total count
-    total_institutions = institutions_query.count()
+    # Include search in cache key
+    if search_query:
+        cache_key += f'_search_{hash(search_query)}'
+    
+    cached_result = cache.get(cache_key)
+    if cached_result:
+        institutions_with_funding, total_institutions = cached_result
+    else:
+        # Get all projects with funding data in one efficient query
+        projects_query = CIHRProject.objects.exclude(
+            research_institution__isnull=True
+        ).exclude(
+            research_institution=''
+        ).exclude(
+            research_institution__iexact='N/A'
+        ).exclude(
+            cihr_amounts__isnull=True
+        ).exclude(
+            cihr_amounts=''
+        ).exclude(
+            cihr_amounts__iexact='N/A'
+        ).values('research_institution', 'cihr_amounts')
+        
+        # Apply search filter if provided
+        if search_query:
+            projects_query = projects_query.filter(
+                research_institution__icontains=search_query
+            )
+        
+        # Process all data in Python efficiently
+        institution_stats = {}
+        
+        for project in projects_query:
+            institution = project['research_institution']
+            amount = parse_funding_amount_python(project['cihr_amounts'])
+            
+            if institution not in institution_stats:
+                institution_stats[institution] = {
+                    'research_institution': institution,
+                    'project_count': 0,
+                    'total_funding': 0,
+                    'funding_projects': 0,
+                    'avg_funding': 0
+                }
+            
+            institution_stats[institution]['project_count'] += 1
+            
+            if amount and amount > 0:
+                institution_stats[institution]['total_funding'] += amount
+                institution_stats[institution]['funding_projects'] += 1
+        
+        # Calculate averages and sort
+        institutions_with_funding = []
+        for stats in institution_stats.values():
+            if stats['funding_projects'] > 0:
+                stats['avg_funding'] = stats['total_funding'] / stats['funding_projects']
+            institutions_with_funding.append(stats)
+        
+        # Sort by project count
+        institutions_with_funding.sort(key=lambda x: x['project_count'], reverse=True)
+        total_institutions = len(institutions_with_funding)
+        
+        # Cache for 15 minutes
+        cache.set(cache_key, (institutions_with_funding, total_institutions), 60 * 15)
     
     # Pagination
-    paginator = Paginator(institutions_query, 25)
+    paginator = Paginator(institutions_with_funding, 25)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
@@ -597,52 +608,78 @@ def institutions(request):
 
 @cache_page(60 * 10)  # Cache for 10 minutes
 def cihr_institutes(request):
-    """CIHR institutes page - completely optimized"""
+    """CIHR institutes page - highly optimized"""
     
-    # Get CIHR institutes with aggregated data in a single query
-    institutes_query = CIHRProject.objects.exclude(
-        primary_institute__isnull=True
-    ).exclude(
-        primary_institute=''
-    ).exclude(
-        primary_institute__iexact='N/A'
-    ).annotate(
-        funding_amount=safe_funding_annotation()
-    ).values('primary_institute').annotate(
-        project_count=Count('primary_institute'),
-        total_funding=Sum(
-            Case(
-                When(funding_amount__gt=0, then='funding_amount'),
-                default=0,
-                output_field=FloatField()
-            )
-        ),
-        funding_projects=Count(
-            Case(
-                When(funding_amount__gt=0, then=1),
-                output_field=FloatField()
-            )
-        ),
-        avg_funding=Avg(
-            Case(
-                When(funding_amount__gt=0, then='funding_amount'),
-                output_field=FloatField()
-            )
-        )
-    ).order_by('-project_count')
-    
-    # Search functionality at database level
+    cache_key = 'cihr_institutes_with_funding_v2'
     search_query = request.GET.get('search', '')
-    if search_query:
-        institutes_query = institutes_query.filter(
-            primary_institute__icontains=search_query
-        )
     
-    # Get total count
-    total_institutes = institutes_query.count()
+    # Include search in cache key
+    if search_query:
+        cache_key += f'_search_{hash(search_query)}'
+    
+    cached_result = cache.get(cache_key)
+    if cached_result:
+        institutes_with_funding, total_institutes = cached_result
+    else:
+        # Get all projects with funding data in one efficient query
+        projects_query = CIHRProject.objects.exclude(
+            primary_institute__isnull=True
+        ).exclude(
+            primary_institute=''
+        ).exclude(
+            primary_institute__iexact='N/A'
+        ).exclude(
+            cihr_amounts__isnull=True
+        ).exclude(
+            cihr_amounts=''
+        ).exclude(
+            cihr_amounts__iexact='N/A'
+        ).values('primary_institute', 'cihr_amounts')
+        
+        # Apply search filter if provided
+        if search_query:
+            projects_query = projects_query.filter(
+                primary_institute__icontains=search_query
+            )
+        
+        # Process all data in Python efficiently
+        institute_stats = {}
+        
+        for project in projects_query:
+            institute = project['primary_institute']
+            amount = parse_funding_amount_python(project['cihr_amounts'])
+            
+            if institute not in institute_stats:
+                institute_stats[institute] = {
+                    'primary_institute': institute,
+                    'project_count': 0,
+                    'total_funding': 0,
+                    'funding_projects': 0,
+                    'avg_funding': 0
+                }
+            
+            institute_stats[institute]['project_count'] += 1
+            
+            if amount and amount > 0:
+                institute_stats[institute]['total_funding'] += amount
+                institute_stats[institute]['funding_projects'] += 1
+        
+        # Calculate averages and sort
+        institutes_with_funding = []
+        for stats in institute_stats.values():
+            if stats['funding_projects'] > 0:
+                stats['avg_funding'] = stats['total_funding'] / stats['funding_projects']
+            institutes_with_funding.append(stats)
+        
+        # Sort by project count
+        institutes_with_funding.sort(key=lambda x: x['project_count'], reverse=True)
+        total_institutes = len(institutes_with_funding)
+        
+        # Cache for 15 minutes
+        cache.set(cache_key, (institutes_with_funding, total_institutes), 60 * 15)
     
     # Pagination
-    paginator = Paginator(institutes_query, 25)
+    paginator = Paginator(institutes_with_funding, 25)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
