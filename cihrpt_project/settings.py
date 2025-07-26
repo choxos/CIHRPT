@@ -154,7 +154,7 @@ if HAS_DECOUPLE:
                     'retry_on_timeout': True,
                 },
                 'COMPRESSOR': 'django_redis.compressors.zlib.ZlibCompressor',
-                'SERIALIZER': 'django_redis.serializers.json.JSONSerializer',
+                'SERIALIZER': 'django_redis.serializers.pickle.PickleSerializer',
             }
         }
     }
