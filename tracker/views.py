@@ -179,66 +179,17 @@ def home(request):
 
 
 def project_list(request):
-    """Project list with filtering and pagination - optimized"""
-    # Base queryset with only necessary fields for list view
-    projects = CIHRProject.objects.only(
-        'project_id', 'project_title', 'principal_investigators',
-        'research_institution', 'primary_institute', 'competition_year_month',
-        'broad_study_type', 'therapeutic_area', 'cihr_amounts'
-    )
+    """Project list with filtering and pagination - highly optimized"""
     
-    # Search functionality
-    search_query = request.GET.get('search', '')
-    if search_query:
-        projects = projects.filter(
-            Q(project_title__icontains=search_query) |
-            Q(abstract_summary__icontains=search_query) |
-            Q(keywords__icontains=search_query) |
-            Q(principal_investigators__icontains=search_query)
-        )
-    
-    # Filtering - optimized with exact lookups where possible
-    broad_study_type = request.GET.get('broad_study_type', '')
-    if broad_study_type:
-        projects = projects.filter(broad_study_type=broad_study_type)
-    
-    therapeutic_area = request.GET.get('therapeutic_area', '')
-    if therapeutic_area:
-        projects = projects.filter(therapeutic_area__icontains=therapeutic_area)
-    
-    primary_institute = request.GET.get('primary_institute', '')
-    if primary_institute:
-        projects = projects.filter(primary_institute=primary_institute)
-    
-    primary_theme = request.GET.get('primary_theme', '')
-    if primary_theme:
-        projects = projects.filter(primary_theme=primary_theme)
-    
-    competition_year = request.GET.get('competition_year', '')
-    if competition_year:
-        projects = projects.filter(competition_year_month__startswith=competition_year)
-    
-    # Ordering
-    order_by = request.GET.get('order_by', '-project_id')
-    projects = projects.order_by(order_by)
-    
-    # Get total count before pagination (optimized)
-    total_results = projects.count()
-    
-    # Pagination
-    paginator = Paginator(projects, 50)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    
-    # Get filter options - cached for performance
-    cache_key = 'filter_options'
+    # Get cache key for filter options
+    cache_key = 'filter_options_v2'
     filter_options = cache.get(cache_key)
     
     if not filter_options:
-        # Use database aggregation for filter options
+        # Use database aggregation for filter options - cached once
         filter_options = {
             'broad_study_types': list(
-                CIHRProject.objects.values_list('broad_study_type', flat=True).distinct()
+                CIHRProject.objects.values_list('broad_study_type', flat=True).distinct().order_by('broad_study_type')
             ),
             'therapeutic_areas': list(
                 CIHRProject.objects.exclude(
@@ -247,7 +198,7 @@ def project_list(request):
                     therapeutic_area=''
                 ).exclude(
                     therapeutic_area__iexact='N/A'
-                ).values_list('therapeutic_area', flat=True).distinct()[:20]
+                ).values_list('therapeutic_area', flat=True).distinct().order_by('therapeutic_area')[:20]
             ),
             'primary_institutes': list(
                 CIHRProject.objects.exclude(
@@ -256,7 +207,7 @@ def project_list(request):
                     primary_institute=''
                 ).exclude(
                     primary_institute__iexact='N/A'
-                ).values_list('primary_institute', flat=True).distinct()
+                ).values_list('primary_institute', flat=True).distinct().order_by('primary_institute')
             ),
             'primary_themes': list(
                 CIHRProject.objects.exclude(
@@ -265,7 +216,7 @@ def project_list(request):
                     primary_theme=''
                 ).exclude(
                     primary_theme__iexact='N/A'
-                ).values_list('primary_theme', flat=True).distinct()
+                ).values_list('primary_theme', flat=True).distinct().order_by('primary_theme')
             ),
             'competition_years': sorted(
                 set([
@@ -275,7 +226,67 @@ def project_list(request):
                 ]), reverse=True
             ),
         }
-        cache.set(cache_key, filter_options, 60 * 15)  # Cache for 15 minutes
+        cache.set(cache_key, filter_options, 60 * 30)  # Cache for 30 minutes
+    
+    # Base queryset with ALL necessary fields for list view (fix N+1 query problem)
+    projects = CIHRProject.objects.only(
+        'project_id', 'project_title', 'principal_investigators',
+        'research_institution', 'primary_institute', 'competition_year_month',
+        'broad_study_type', 'therapeutic_area', 'primary_theme', 'cihr_amounts',
+        'abstract_summary', 'keywords'  # These were missing and causing N+1 queries!
+    )
+    
+    # Get filter parameters
+    search_query = request.GET.get('search', '')
+    broad_study_type = request.GET.get('broad_study_type', '')
+    therapeutic_area = request.GET.get('therapeutic_area', '')
+    primary_institute = request.GET.get('primary_institute', '')
+    primary_theme = request.GET.get('primary_theme', '')
+    competition_year = request.GET.get('competition_year', '')
+    order_by = request.GET.get('order_by', '-project_id')
+    
+    # Apply filters efficiently
+    if search_query:
+        projects = projects.filter(
+            Q(project_title__icontains=search_query) |
+            Q(abstract_summary__icontains=search_query) |
+            Q(keywords__icontains=search_query) |
+            Q(principal_investigators__icontains=search_query)
+        )
+    
+    if broad_study_type:
+        projects = projects.filter(broad_study_type=broad_study_type)
+    
+    if therapeutic_area:
+        projects = projects.filter(therapeutic_area__icontains=therapeutic_area)
+    
+    if primary_institute:
+        projects = projects.filter(primary_institute=primary_institute)
+    
+    if primary_theme:
+        projects = projects.filter(primary_theme=primary_theme)
+    
+    if competition_year:
+        projects = projects.filter(competition_year_month__startswith=competition_year)
+    
+    # Apply ordering
+    projects = projects.order_by(order_by)
+    
+    # Efficient count using database - only calculate if needed
+    if 'page' in request.GET or search_query or any([broad_study_type, therapeutic_area, primary_institute, primary_theme, competition_year]):
+        total_results = projects.count()
+    else:
+        # For unfiltered first page, use cached total
+        cache_key_total = 'total_projects_count'
+        total_results = cache.get(cache_key_total)
+        if total_results is None:
+            total_results = CIHRProject.objects.count()
+            cache.set(cache_key_total, total_results, 60 * 60)  # Cache for 1 hour
+    
+    # Pagination
+    paginator = Paginator(projects, 50)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
     
     context = {
         'page_title': 'CIHR Projects',
