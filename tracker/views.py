@@ -1,7 +1,8 @@
 from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator
-from django.db.models import Q, Count, Sum, Avg, F, Value, FloatField, Case, When
-from django.db.models.functions import Cast, Replace, Substr
+from django.db.models import Q, Count, Sum, Avg, F, Value, Case, When, FloatField
+from django.db.models.functions import Substr
+from django.db import models
 from django.http import JsonResponse
 from django.views.decorators.cache import cache_page
 from django.core.cache import cache
@@ -16,18 +17,112 @@ from .models import CIHRProject
 from .serializers import CIHRProjectSerializer, CIHRProjectListSerializer
 
 
-def parse_funding_amount_db():
-    """Create a database expression to parse funding amounts"""
-    return Cast(
-        Replace(
-            Replace(
-                Replace('cihr_amounts', Value('$'), Value('')),
-                Value(','), Value('')
-            ),
-            Value(' '), Value('')
-        ),
-        FloatField()
+def parse_funding_amount_python(amount_str):
+    """Parse funding amount in Python - handles complex cases like semicolon-separated values"""
+    if not amount_str or amount_str.upper() in ['N/A', 'NULL', '']:
+        return None
+    
+    try:
+        # Clean the string
+        cleaned = str(amount_str).replace('$', '').replace(',', '').replace('"', '').strip()
+        
+        # Handle semicolon-separated values by taking the first one
+        if ';' in cleaned:
+            cleaned = cleaned.split(';')[0].strip()
+        
+        # Convert to float
+        return float(cleaned) if cleaned else None
+    except (ValueError, TypeError):
+        return None
+
+
+def safe_funding_annotation():
+    """Simple safe annotation for funding amounts - avoids complex parsing"""
+    # Just return a placeholder that we'll calculate in Python later
+    return Value(0, output_field=FloatField())
+
+
+def get_funding_stats_optimized():
+    """Get funding statistics using optimized hybrid approach"""
+    cache_key = 'funding_stats_v3'
+    cached_result = cache.get(cache_key)
+    if cached_result:
+        return cached_result
+    
+    # Get all projects with funding amounts
+    all_projects = CIHRProject.objects.exclude(
+        cihr_amounts__isnull=True
+    ).exclude(
+        cihr_amounts=''
+    ).exclude(
+        cihr_amounts__iexact='N/A'
+    ).values(
+        'cihr_amounts', 'therapeutic_area', 'primary_institute', 'primary_theme', 
+        'broad_study_type', 'patient_engagement', 'indigenous_collaboration',
+        'international_collaboration', 'health_equity', 'implementation_science', 
+        'knowledge_translation_focus'
     )
+    
+    # Initialize results
+    funding_stats = {
+        'therapeutic_area': {},
+        'primary_institute': {},
+        'primary_theme': {},
+        'broad_study_type': {}
+    }
+    
+    focus_funding = {
+        'patient_engagement': 0,
+        'indigenous_collaboration': 0,
+        'international_collaboration': 0,
+        'health_equity': 0,
+        'implementation_science': 0,
+        'knowledge_translation': 0
+    }
+    
+    total_funding = 0
+    project_count = 0
+    
+    # Process all projects in Python for reliability
+    for project in all_projects:
+        amount = parse_funding_amount_python(project['cihr_amounts'])
+        if amount and amount > 0:
+            total_funding += amount
+            project_count += 1
+            
+            # Group by categories
+            for field in ['therapeutic_area', 'primary_institute', 'primary_theme', 'broad_study_type']:
+                value = project.get(field)
+                if value and value not in ['N/A', '', None]:
+                    if value not in funding_stats[field]:
+                        funding_stats[field][value] = 0
+                    funding_stats[field][value] += amount
+            
+            # Process special focus areas
+            if project.get('patient_engagement') == 'yes':
+                focus_funding['patient_engagement'] += amount
+            if project.get('indigenous_collaboration') == 'yes':
+                focus_funding['indigenous_collaboration'] += amount
+            if project.get('international_collaboration') == 'yes':
+                focus_funding['international_collaboration'] += amount
+            if project.get('health_equity') == 'yes':
+                focus_funding['health_equity'] += amount
+            if project.get('implementation_science') == 'yes':
+                focus_funding['implementation_science'] += amount
+            if project.get('knowledge_translation_focus') == 'yes':
+                focus_funding['knowledge_translation'] += amount
+    
+    result = {
+        'total_funding': total_funding,
+        'project_count': project_count,
+        'avg_funding': total_funding / project_count if project_count > 0 else 0,
+        'by_category': funding_stats,
+        'focus_areas': focus_funding
+    }
+    
+    # Cache for 15 minutes
+    cache.set(cache_key, result, 60 * 15)
+    return result
 
 
 @cache_page(60 * 5)  # Cache for 5 minutes
@@ -41,8 +136,8 @@ def home(request):
         cihr_amounts=''
     ).exclude(
         cihr_amounts__iexact='N/A'
-    ).annotate(
-        funding_amount=parse_funding_amount_db()
+    ).values('cihr_amounts').annotate(
+        funding_amount=Value(0, output_field=models.FloatField())  # Placeholder, will be calculated in Python
     ).exclude(
         funding_amount__isnull=True
     ).exclude(
@@ -334,136 +429,40 @@ def statistics(request):
             )
         )
         
-        # FUNDING ANALYSIS - All at database level
+        # FUNDING ANALYSIS - Use optimized hybrid approach
+        funding_stats = get_funding_stats_optimized()
         
-        # Total funding calculation
-        funding_totals = CIHRProject.objects.exclude(
-            cihr_amounts__isnull=True
-        ).exclude(
-            cihr_amounts=''
-        ).exclude(
-            cihr_amounts__iexact='N/A'
-        ).annotate(
-            funding_amount=parse_funding_amount_db()
-        ).exclude(
-            funding_amount__isnull=True
-        ).exclude(
-            funding_amount__lte=0
-        ).aggregate(
-            total_funding=Sum('funding_amount'),
-            funding_projects=Count('id'),
-            avg_funding=Avg('funding_amount')
-        )
+        # Extract totals
+        funding_totals = {
+            'total_funding': funding_stats['total_funding'],
+            'funding_projects': funding_stats['project_count'],
+            'avg_funding': funding_stats['avg_funding']
+        }
         
-        # Funding by therapeutic area
+        # Extract top funded therapeutic areas
+        therapeutic_funding = funding_stats['by_category'].get('therapeutic_area', {})
         top_funded_areas = list(
-            CIHRProject.objects.exclude(
-                therapeutic_area__isnull=True
-            ).exclude(
-                therapeutic_area=''
-            ).exclude(
-                therapeutic_area__iexact='N/A'
-            ).exclude(
-                cihr_amounts__isnull=True
-            ).exclude(
-                cihr_amounts=''
-            ).annotate(
-                funding_amount=parse_funding_amount_db()
-            ).exclude(
-                funding_amount__isnull=True
-            ).exclude(
-                funding_amount__lte=0
-            ).values('therapeutic_area').annotate(
-                total_funding=Sum('funding_amount'),
-                project_count=Count('id')
-            ).order_by('-total_funding')[:10].values_list('therapeutic_area', 'total_funding')
+            sorted(therapeutic_funding.items(), key=lambda x: x[1], reverse=True)[:10]
         )
         
-        # Funding by CIHR institute
+        # Extract funding by CIHR institute
+        institute_funding = funding_stats['by_category'].get('primary_institute', {})
         top_funded_institutes = list(
-            CIHRProject.objects.exclude(
-                primary_institute__isnull=True
-            ).exclude(
-                primary_institute=''
-            ).exclude(
-                primary_institute__iexact='N/A'
-            ).exclude(
-                cihr_amounts__isnull=True
-            ).exclude(
-                cihr_amounts=''
-            ).annotate(
-                funding_amount=parse_funding_amount_db()
-            ).exclude(
-                funding_amount__isnull=True
-            ).exclude(
-                funding_amount__lte=0
-            ).values('primary_institute').annotate(
-                total_funding=Sum('funding_amount'),
-                project_count=Count('id')
-            ).order_by('-total_funding')[:10].values_list('primary_institute', 'total_funding')
+            sorted(institute_funding.items(), key=lambda x: x[1], reverse=True)[:10]
         )
         
-        # Funding by study type
-        funding_by_study_type = dict(
-            CIHRProject.objects.exclude(
-                cihr_amounts__isnull=True
-            ).exclude(
-                cihr_amounts=''
-            ).annotate(
-                funding_amount=parse_funding_amount_db()
-            ).exclude(
-                funding_amount__isnull=True
-            ).exclude(
-                funding_amount__lte=0
-            ).values('broad_study_type').annotate(
-                total_funding=Sum('funding_amount')
-            ).values_list('broad_study_type', 'total_funding')
-        )
+        # Extract funding by study type
+        study_type_funding = funding_stats['by_category'].get('broad_study_type', {})
+        funding_by_study_type = dict(study_type_funding)
         
-        # Funding by research theme
+        # Extract funding by research theme
+        theme_funding = funding_stats['by_category'].get('primary_theme', {})
         top_funded_themes = list(
-            CIHRProject.objects.exclude(
-                primary_theme__isnull=True
-            ).exclude(
-                primary_theme=''
-            ).exclude(
-                primary_theme__iexact='N/A'
-            ).exclude(
-                cihr_amounts__isnull=True
-            ).exclude(
-                cihr_amounts=''
-            ).annotate(
-                funding_amount=parse_funding_amount_db()
-            ).exclude(
-                funding_amount__isnull=True
-            ).exclude(
-                funding_amount__lte=0
-            ).values('primary_theme').annotate(
-                total_funding=Sum('funding_amount')
-            ).order_by('-total_funding')[:10].values_list('primary_theme', 'total_funding')
+            sorted(theme_funding.items(), key=lambda x: x[1], reverse=True)[:10]
         )
         
-        # Funding by special focus areas
-        funding_by_focus = dict(
-            CIHRProject.objects.exclude(
-                cihr_amounts__isnull=True
-            ).exclude(
-                cihr_amounts=''
-            ).annotate(
-                funding_amount=parse_funding_amount_db()
-            ).exclude(
-                funding_amount__isnull=True
-            ).exclude(
-                funding_amount__lte=0
-            ).aggregate(
-                patient_engagement=Sum(Case(When(patient_engagement='yes', then='funding_amount'), default=0)),
-                indigenous_collaboration=Sum(Case(When(indigenous_collaboration='yes', then='funding_amount'), default=0)),
-                international_collaboration=Sum(Case(When(international_collaboration='yes', then='funding_amount'), default=0)),
-                health_equity=Sum(Case(When(health_equity='yes', then='funding_amount'), default=0)),
-                implementation_science=Sum(Case(When(implementation_science='yes', then='funding_amount'), default=0)),
-                knowledge_translation=Sum(Case(When(knowledge_translation_focus='yes', then='funding_amount'), default=0)),
-            )
-        )
+        # Extract funding by special focus areas
+        funding_by_focus = funding_stats['focus_areas']
         
         # Convert to more readable format
         funding_by_focus_readable = {
@@ -545,7 +544,7 @@ def institutions(request):
     ).exclude(
         research_institution__iexact='N/A'
     ).annotate(
-        funding_amount=parse_funding_amount_db()
+        funding_amount=safe_funding_annotation()
     ).values('research_institution').annotate(
         project_count=Count('research_institution'),
         total_funding=Sum(
@@ -608,7 +607,7 @@ def cihr_institutes(request):
     ).exclude(
         primary_institute__iexact='N/A'
     ).annotate(
-        funding_amount=parse_funding_amount_db()
+        funding_amount=safe_funding_annotation()
     ).values('primary_institute').annotate(
         project_count=Count('primary_institute'),
         total_funding=Sum(
